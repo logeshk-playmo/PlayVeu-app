@@ -14,16 +14,16 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const PlayveuwApp());
+  runApp(const PlayVueApp());
 }
 
-class PlayveuwApp extends StatelessWidget {
-  const PlayveuwApp({super.key});
+class PlayVueApp extends StatelessWidget {
+  const PlayVueApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Playveuw',
+      title: 'PlayVue',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,

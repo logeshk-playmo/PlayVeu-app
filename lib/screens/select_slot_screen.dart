@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import 'booking_details_screen.dart';
 
 class SelectSlotScreen extends StatefulWidget {
@@ -17,13 +20,25 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
   DateTime? _selectedDate;
   String? _selectedDuration;
   String? _selectedStartTime;
-  
+
   final List<String> _durations = ['30 Mins', '1 Hour', '2 Hours'];
   final List<String> _timeSlots = [
-    '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
-    '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
-    '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
-    '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM',
+    '09:00 AM',
+    '09:30 AM',
+    '10:00 AM',
+    '10:30 AM',
+    '11:00 AM',
+    '11:30 AM',
+    '12:00 PM',
+    '12:30 PM',
+    '01:00 PM',
+    '01:30 PM',
+    '02:00 PM',
+    '02:30 PM',
+    '03:00 PM',
+    '03:30 PM',
+    '04:00 PM',
+    '04:30 PM',
   ];
 
   @override
@@ -42,7 +57,7 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
   String _calculateEndTime(String startTime, String duration) {
     final format = DateFormat('hh:mm a');
     DateTime start = format.parse(startTime);
-    
+
     if (duration == '30 Mins') {
       start = start.add(const Duration(minutes: 30));
     } else if (duration == '1 Hour') {
@@ -50,7 +65,7 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
     } else if (duration == '2 Hours') {
       start = start.add(const Duration(hours: 2));
     }
-    
+
     return format.format(start);
   }
 
@@ -67,8 +82,10 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
   }
 
   void _confirmBooking() {
-    if (_selectedGame == null || _selectedDate == null || 
-        _selectedDuration == null || _selectedStartTime == null) {
+    if (_selectedGame == null ||
+        _selectedDate == null ||
+        _selectedDuration == null ||
+        _selectedStartTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select all booking details')),
       );
@@ -112,11 +129,7 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
             // Venue Header
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.fieldBorder),
-              ),
+              decoration: AppSurfaces.card(),
               child: Row(
                 children: [
                   ClipRRect(
@@ -156,7 +169,7 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Game Selection
             const Text(
               'Selected Game',
@@ -198,24 +211,30 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
             InkWell(
               onTap: _pickDate,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.fieldBorder),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
                 ),
+                decoration: AppSurfaces.card(),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_month_rounded, color: AppColors.primary),
+                    const AppIcon(
+                      HugeIcons.strokeRoundedCalendar03,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(width: 12),
                     Text(
-                      _selectedDate == null 
-                          ? 'Select Booking Date' 
+                      _selectedDate == null
+                          ? 'Select Booking Date'
                           : DateFormat('dd MMMM yyyy').format(_selectedDate!),
                       style: TextStyle(
                         fontSize: 15,
-                        color: _selectedDate == null ? AppColors.textSecondary : AppColors.navy,
-                        fontWeight: _selectedDate == null ? FontWeight.normal : FontWeight.w600,
+                        color: _selectedDate == null
+                            ? AppColors.textSecondary
+                            : AppColors.navy,
+                        fontWeight: _selectedDate == null
+                            ? FontWeight.normal
+                            : FontWeight.w600,
                       ),
                     ),
                   ],
@@ -248,7 +267,9 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
                           color: isSelected ? AppColors.primary : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : AppColors.fieldBorder,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.fieldBorder,
                           ),
                         ),
                         child: Center(
@@ -256,7 +277,9 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
                             duration,
                             style: TextStyle(
                               color: isSelected ? Colors.white : AppColors.navy,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                             ),
                           ),
                         ),
@@ -299,7 +322,9 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
                         color: isSelected ? AppColors.primary : Colors.white,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : AppColors.fieldBorder,
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.fieldBorder,
                         ),
                       ),
                       child: Center(
@@ -308,7 +333,9 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             color: isSelected ? Colors.white : AppColors.navy,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                           ),
                         ),
                       ),
@@ -322,11 +349,7 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
               if (_selectedStartTime != null) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
-                  ),
+                  decoration: AppSurfaces.card(),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -382,17 +405,8 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
         ),
       ),
       bottomSheet: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        decoration: AppSurfaces.bar,
         child: SafeArea(
           child: FilledButton(
             onPressed: _confirmBooking,

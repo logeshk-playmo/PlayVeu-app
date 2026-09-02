@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   const BookingDetailsScreen({super.key, required this.bookingData});
@@ -35,11 +38,7 @@ class BookingDetailsScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.fieldBorder),
-              ),
+              decoration: AppSurfaces.card(),
               child: Row(
                 children: [
                   ClipRRect(
@@ -84,25 +83,25 @@ class BookingDetailsScreen extends StatelessWidget {
             _InfoRow(
               label: 'Game',
               value: bookingData['game'],
-              icon: Icons.sports_tennis_rounded,
+              icon: HugeIcons.strokeRoundedBadminton,
             ),
             const SizedBox(height: 16),
             _InfoRow(
               label: 'Date',
               value: bookingData['date'],
-              icon: Icons.calendar_month_rounded,
+              icon: HugeIcons.strokeRoundedCalendar03,
             ),
             const SizedBox(height: 16),
             _InfoRow(
               label: 'Time',
               value: '${bookingData['startTime']} - ${bookingData['endTime']}',
-              icon: Icons.access_time_rounded,
+              icon: HugeIcons.strokeRoundedClock01,
             ),
             const SizedBox(height: 16),
             _InfoRow(
               label: 'Duration',
               value: bookingData['duration'],
-              icon: Icons.timer_outlined,
+              icon: HugeIcons.strokeRoundedTimer01,
             ),
             const SizedBox(height: 32),
 
@@ -117,12 +116,8 @@ class BookingDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.fieldBorder),
-              ),
+              padding: const EdgeInsets.all(16),
+              decoration: AppSurfaces.card(),
               child: Column(
                 children: [
                   Row(
@@ -174,25 +169,13 @@ class BookingDetailsScreen extends StatelessWidget {
         ),
       ),
       bottomSheet: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        decoration: AppSurfaces.bar,
         child: SafeArea(
           child: FilledButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Payment flow coming soon'),
-                  backgroundColor: AppColors.navy,
-                ),
+                const SnackBar(content: Text('Payment flow coming soon')),
               );
             },
             child: const Text('PAY'),
@@ -204,25 +187,22 @@ class BookingDetailsScreen extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value, required this.icon});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
 
   final String label;
   final String value;
-  final IconData icon;
+  final List<List<dynamic>> icon;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 20),
-        ),
-        const SizedBox(width: 14),
+        AppIcon(icon, color: AppColors.primary, size: 20),
+        const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -1,4 +1,4 @@
-# playveuw_app
+# PlayVue
 
 A new Flutter project.
 

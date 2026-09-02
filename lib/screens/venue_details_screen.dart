@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+
 import '../theme/app_theme.dart';
+import '../widgets/app_icon.dart';
 import 'select_slot_screen.dart';
 
 class VenueDetailsScreen extends StatelessWidget {
@@ -25,7 +28,11 @@ class VenueDetailsScreen extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   color: AppColors.primarySoft.withValues(alpha: 0.2),
-                  child: const Icon(Icons.image, color: AppColors.primary, size: 60),
+                  child: const AppIcon(
+                    HugeIcons.strokeRoundedImageNotFound01,
+                    color: AppColors.primary,
+                    size: 60,
+                  ),
                 ),
               ),
             ),
@@ -51,7 +58,11 @@ class VenueDetailsScreen extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          const Icon(Icons.star_rounded, color: Colors.amber, size: 22),
+                          const AppIcon(
+                            HugeIcons.strokeRoundedStar,
+                            color: Colors.amber,
+                            size: 22,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             venue['rating'].toString(),
@@ -68,7 +79,11 @@ class VenueDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 20),
+                      const AppIcon(
+                        HugeIcons.strokeRoundedLocation01,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         venue['location'],
@@ -112,11 +127,13 @@ class VenueDetailsScreen extends StatelessWidget {
                     runSpacing: 8,
                     children: (venue['games'] as List<String>).map((game) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           game,
@@ -138,12 +155,16 @@ class VenueDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ... (venue['facilities'] as List<String>).map((facility) {
+                  ...(venue['facilities'] as List<String>).map((facility) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Row(
                         children: [
-                          const Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 20),
+                          const AppIcon(
+                            HugeIcons.strokeRoundedCheckmarkCircle02,
+                            color: AppColors.accent,
+                            size: 20,
+                          ),
                           const SizedBox(width: 10),
                           Text(
                             facility,
@@ -168,7 +189,11 @@ class VenueDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded, color: AppColors.textSecondary, size: 20),
+                      const AppIcon(
+                        HugeIcons.strokeRoundedClock01,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
                       const SizedBox(width: 10),
                       Text(
                         venue['hours'],
@@ -187,17 +212,8 @@ class VenueDetailsScreen extends StatelessWidget {
         ],
       ),
       bottomSheet: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        decoration: AppSurfaces.bar,
         child: SafeArea(
           child: FilledButton(
             onPressed: () {

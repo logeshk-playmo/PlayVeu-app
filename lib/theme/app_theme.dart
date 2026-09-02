@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Light-blue palette sampled from the Playveuw splash logo and app icon.
+/// Light-blue palette sampled from the PlayVue splash logo and app icon.
 abstract final class AppColors {
   static const primary = Color(0xFF1E9BE8);
   static const primaryDark = Color(0xFF0B6CB3);
@@ -12,6 +12,23 @@ abstract final class AppColors {
   static const backgroundBottom = Color(0xFFF8FCFF);
   static const fieldFill = Color(0xFFFFFFFF);
   static const fieldBorder = Color(0xFFD3E8F6);
+}
+
+abstract final class AppSurfaces {
+  static const radius = 12.0;
+
+  static BoxDecoration card({Color? border, Color? color}) {
+    return BoxDecoration(
+      color: color ?? Colors.white,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: border ?? AppColors.fieldBorder),
+    );
+  }
+
+  static const bar = BoxDecoration(
+    color: Colors.white,
+    border: Border(top: BorderSide(color: AppColors.fieldBorder)),
+  );
 }
 
 abstract final class AppTheme {
@@ -32,23 +49,33 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.backgroundBottom,
       fontFamily: 'Roboto',
+      splashFactory: InkRipple.splashFactory,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.backgroundBottom,
         elevation: 0,
         scrolledUnderElevation: 0,
         foregroundColor: AppColors.navy,
         centerTitle: false,
+        titleSpacing: 0,
+        leadingWidth: 48,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: AppColors.navy,
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
-        elevation: 8,
-        height: 72,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.14),
+        elevation: 0,
+        height: 64,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
             color: selected ? AppColors.primary : AppColors.textSecondary,
           );
         }),
@@ -56,7 +83,7 @@ abstract final class AppTheme {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
             color: selected ? AppColors.primary : AppColors.textSecondary,
-            size: 24,
+            size: 22,
           );
         }),
       ),
@@ -72,24 +99,24 @@ abstract final class AppTheme {
           vertical: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.fieldBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.fieldBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: colorScheme.error),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.error, width: 1.6),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.error),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -97,16 +124,26 @@ abstract final class AppTheme {
           elevation: 0,
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(54),
+          minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.fieldBorder),
+          minimumSize: const Size(64, 36),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        elevation: 0,
       ),
       textTheme: const TextTheme(
         headlineMedium: TextStyle(

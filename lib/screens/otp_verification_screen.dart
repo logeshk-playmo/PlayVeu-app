@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
-import '../widgets/auth_background.dart';
 import '../widgets/primary_button.dart';
 import 'home_screen.dart';
 
@@ -118,144 +117,138 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     final boxSize = MediaQuery.sizeOf(context).width < 360 ? 52.0 : 60.0;
 
     return Scaffold(
+      backgroundColor: AppColors.backgroundBottom,
       resizeToAvoidBottomInset: true,
-      body: AuthBackground(
-        child: SafeArea(
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    color: AppColors.navy,
-                  ),
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Column(
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  color: AppColors.navy,
                 ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + bottomInset),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 480),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Image.asset(
-                              'assets/app_icon.png',
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Verify OTP',
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'We sent a 4-digit OTP to $_maskedPhone',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 36),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: List.generate(_otpLength, (index) {
-                              return SizedBox(
-                                width: boxSize,
-                                height: boxSize,
-                                child: Focus(
-                                  onKeyEvent: (node, event) {
-                                    if (event is KeyDownEvent &&
-                                        event.logicalKey ==
-                                            LogicalKeyboardKey.backspace &&
-                                        _controllers[index].text.isEmpty &&
-                                        index > 0) {
-                                      _focusNodes[index - 1].requestFocus();
-                                      _controllers[index - 1].clear();
-                                      return KeyEventResult.handled;
-                                    }
-                                    return KeyEventResult.ignored;
-                                  },
-                                  child: TextField(
-                                    controller: _controllers[index],
-                                    focusNode: _focusNodes[index],
-                                    textAlign: TextAlign.center,
-                                    keyboardType: TextInputType.number,
-                                    textInputAction: index == _otpLength - 1
-                                        ? TextInputAction.done
-                                        : TextInputAction.next,
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.navy,
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + bottomInset),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Image.asset(
+                          'assets/app_icon.png',
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Verify OTP',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'We sent a 4-digit OTP to $_maskedPhone',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 36),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(_otpLength, (index) {
+                          return SizedBox(
+                            width: boxSize,
+                            height: boxSize,
+                            child: Focus(
+                              onKeyEvent: (node, event) {
+                                if (event is KeyDownEvent &&
+                                    event.logicalKey ==
+                                        LogicalKeyboardKey.backspace &&
+                                    _controllers[index].text.isEmpty &&
+                                    index > 0) {
+                                  _focusNodes[index - 1].requestFocus();
+                                  _controllers[index - 1].clear();
+                                  return KeyEventResult.handled;
+                                }
+                                return KeyEventResult.ignored;
+                              },
+                              child: TextField(
+                                controller: _controllers[index],
+                                focusNode: _focusNodes[index],
+                                textAlign: TextAlign.center,
+                                keyboardType: TextInputType.number,
+                                textInputAction: index == _otpLength - 1
+                                    ? TextInputAction.done
+                                    : TextInputAction.next,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navy,
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(4),
+                                ],
+                                onChanged: (value) =>
+                                    _onOtpChanged(index, value),
+                                onSubmitted: (_) {
+                                  if (index == _otpLength - 1) {
+                                    _onVerify();
+                                  }
+                                },
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  contentPadding: EdgeInsets.zero,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: _errorText == null
+                                          ? AppColors.fieldBorder
+                                          : Theme.of(context).colorScheme.error,
                                     ),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(4),
-                                    ],
-                                    onChanged: (value) =>
-                                        _onOtpChanged(index, value),
-                                    onSubmitted: (_) {
-                                      if (index == _otpLength - 1) {
-                                        _onVerify();
-                                      }
-                                    },
-                                    decoration: InputDecoration(
-                                      counterText: '',
-                                      contentPadding: EdgeInsets.zero,
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(
-                                          color: _errorText == null
-                                              ? AppColors.fieldBorder
-                                              : Theme.of(
-                                                  context,
-                                                ).colorScheme.error,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(
-                                          color: AppColors.primary,
-                                          width: 1.6,
-                                        ),
-                                      ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primary,
+                                      width: 1.6,
                                     ),
                                   ),
                                 ),
-                              );
-                            }),
-                          ),
-                          if (_errorText != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              _errorText!,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ],
-                          const SizedBox(height: 32),
-                          PrimaryButton(
-                            label: 'Verify',
-                            isLoading: _isVerifying,
-                            onPressed: _onVerify,
-                          ),
-                        ],
+                          );
+                        }),
                       ),
-                    ),
+                      if (_errorText != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _errorText!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      PrimaryButton(
+                        label: 'Verify',
+                        isLoading: _isVerifying,
+                        onPressed: _onVerify,
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

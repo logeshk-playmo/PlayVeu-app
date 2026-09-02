@@ -1,6 +1,6 @@
 {
-    "name": "playveuw_app",
-    "short_name": "playveuw_app",
+    "name": "PlayVue",
+    "short_name": "PlayVue",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
