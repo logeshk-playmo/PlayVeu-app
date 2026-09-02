@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:playveuw_app/screens/home_screen.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
@@ -57,116 +58,128 @@ class _CreditSuccessScreenState extends State<CreditSuccessScreen>
     return Scaffold(
       backgroundColor: AppColors.backgroundBottom,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-          child: Column(
-            children: [
-              const Spacer(flex: 2),
-              ScaleTransition(
-                scale: _scale,
-                child: Container(
-                  width: 112,
-                  height: 112,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.35),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: const Center(
-                    child: AppIcon(
-                      HugeIcons.strokeRoundedCheckmarkCircle02,
-                      size: 56,
-                      color: AppColors.primary,
-                      strokeWidth: 2.2,
-                    ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: (constraints.maxHeight - 36)
+                      .clamp(0.0, double.infinity),
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const Spacer(flex: 2),
+                      ScaleTransition(
+                        scale: _scale,
+                        child: Container(
+                          width: 112,
+                          height: 112,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.35),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Center(
+                            child: AppIcon(
+                              HugeIcons.strokeRoundedCheckmarkCircle02,
+                              size: 56,
+                              color: AppColors.primary,
+                              strokeWidth: 2.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: _fade.value,
+                            child: Transform.translate(
+                              offset: Offset(0, _slide.value),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            const Text(
+                              'Payment successful',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.navy,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '+${widget.creditsAdded} credits added to your wallet',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: AppColors.textSecondary,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 18,
+                              ),
+                              decoration: AppSurfaces.card(),
+                              child: Column(
+                                children: [
+                                  const Text(
+                                    'New balance',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '${widget.newBalance}',
+                                    style: const TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.navy,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    'Credits',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(flex: 3),
+                      PrimaryButton(
+                        label: 'Done',
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder:(context) => HomeScreen(), )),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 28),
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _fade.value,
-                    child: Transform.translate(
-                      offset: Offset(0, _slide.value),
-                      child: child,
-                    ),
-                  );
-                },
-                child: Column(
-                  children: [
-                    const Text(
-                      'Payment successful',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navy,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '+${widget.creditsAdded} credits added to your wallet',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 18,
-                      ),
-                      decoration: AppSurfaces.card(),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'New balance',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${widget.newBalance}',
-                            style: const TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.navy,
-                              height: 1.1,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Credits',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryDark,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(flex: 3),
-              PrimaryButton(
-                label: 'Done',
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

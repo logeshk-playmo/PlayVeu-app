@@ -31,7 +31,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
   @override
   void initState() {
     super.initState();
-    _balance = widget.credits;
+    _balance = AppCreditsState.current;
   }
 
   _CreditPlan get _plan => _plans[_selected];
@@ -43,7 +43,8 @@ class _CreditsScreenState extends State<CreditsScreen> {
     if (!mounted) return;
 
     final added = _plan.credits;
-    final next = _balance + added;
+    AppCreditsState.add(added);
+    final next = AppCreditsState.current;
     setState(() {
       _balance = next;
       _buying = false;
@@ -106,6 +107,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
       bottomNavigationBar: DecoratedBox(
         decoration: AppSurfaces.bar,
         child: SafeArea(
+          top: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
             child: PrimaryButton(

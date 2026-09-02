@@ -3,7 +3,9 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
+import 'booking_history_screen.dart';
 import 'credits_screen.dart';
+import 'my_game_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
@@ -37,7 +39,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _credits = widget.credits;
+    _credits = AppCreditsState.current;
+    AppCreditsState.balance.addListener(_onCreditsChanged);
+  }
+
+  @override
+  void dispose() {
+    AppCreditsState.balance.removeListener(_onCreditsChanged);
+    super.dispose();
+  }
+
+  void _onCreditsChanged() {
+    if (mounted) setState(() => _credits = AppCreditsState.current);
   }
 
   void _openCredits() {
@@ -46,10 +59,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (_) => CreditsScreen(
           credits: _credits,
           onBalanceChanged: (total) {
-            setState(() => _credits = total);
+            AppCreditsState.current = total;
             widget.onCreditsChanged?.call(total);
           },
         ),
+      ),
+    );
+  }
+
+  void _openBookingHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const BookingHistoryScreen(),
+      ),
+    );
+  }
+
+  void _openGameHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const MyGameHistoryScreen(),
       ),
     );
   }
@@ -65,9 +94,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundBottom,
       appBar: AppBar(title: const Text('Profile')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-        children: [
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
           const Center(child: _AvatarMark(letter: 'L', radius: 40)),
           const SizedBox(height: 16),
           Text(
@@ -127,7 +158,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: HugeIcons.strokeRoundedCalendar03,
                 label: 'Bookings',
                 value: 'View history',
-                onTap: () => _comingSoon('Bookings'),
+                onTap: _openBookingHistory,
+              ),
+              _ProfileAction(
+                icon: HugeIcons.strokeRoundedWorkoutRun,
+                label: 'My Games',
+                value: 'View history',
+                onTap: _openGameHistory,
               ),
               _ProfileAction(
                 icon: HugeIcons.strokeRoundedSettings01,
@@ -139,7 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
+      ));
   }
 }
 

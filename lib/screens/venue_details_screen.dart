@@ -204,26 +204,32 @@ class VenueDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      bottomNavigationBar: DecoratedBox(
         decoration: AppSurfaces.bar,
         child: SafeArea(
-          child: FilledButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => SelectSlotScreen(venue: venue),
-                ),
-              );
-            },
-            child: const Text('BOOK NOW'),
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => SelectSlotScreen(venue: venue),
+                    ),
+                  );
+                },
+                child: const Text('BOOK NOW'),
+              ),
+            ),
           ),
         ),
       ),

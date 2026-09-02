@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: AppColors.backgroundBottom,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
           child: Column(
             children: [
               const Spacer(flex: 3),

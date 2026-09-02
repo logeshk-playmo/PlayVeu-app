@@ -7,8 +7,15 @@ import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import 'venue_details_screen.dart';
 
-class VenuesScreen extends StatelessWidget {
-  const VenuesScreen({super.key});
+typedef VenueScreen = VenuesScreen;
+
+class VenuesScreen extends StatefulWidget {
+  const VenuesScreen({
+    super.key,
+    this.selectedSport,
+  });
+
+  final String? selectedSport;
 
   static const List<Map<String, dynamic>> venues = [
     {
@@ -92,25 +99,257 @@ class VenuesScreen extends StatelessWidget {
   ];
 
   @override
+  State<VenuesScreen> createState() => _VenuesScreenState();
+}
+
+class _VenuesScreenState extends State<VenuesScreen> {
+  String? _selectedSport;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSport = widget.selectedSport;
+  }
+
+  @override
+  void didUpdateWidget(covariant VenuesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedSport != oldWidget.selectedSport) {
+      _selectedSport = widget.selectedSport;
+    }
+  }
+
+  bool _matchesSport(List<String> games, String target) {
+    final t = target.trim().toLowerCase();
+    if (t.isEmpty || t == 'all') return true;
+
+    for (final game in games) {
+      final g = game.trim().toLowerCase();
+      if (g == t) return true;
+
+      // Robust matching for common aliases & variations
+      if (t.contains('cricket') && g.contains('cricket')) return true;
+      if (t.contains('pickleball') && g.contains('pickleball')) return true;
+      if (t.contains('table tennis') && g.contains('table tennis')) return true;
+      if (t.contains('swimming') && g.contains('swimming')) return true;
+      if (t.contains('badminton') && g.contains('badminton')) return true;
+      if (t.contains('football') && g.contains('football')) return true;
+      if (t.contains('tennis') &&
+          !t.contains('table') &&
+          g.contains('tennis') &&
+          !g.contains('table')) {
+        return true;
+      }
+      if (t.contains('squash') && g.contains('squash')) return true;
+    }
+    return false;
+  }
+
+  List<Map<String, dynamic>> get _filteredVenues {
+    if (_selectedSport == null || _selectedSport!.trim().isEmpty) {
+      return VenuesScreen.venues;
+    }
+    return VenuesScreen.venues
+        .where((venue) => _matchesSport(
+              (venue['games'] as List).cast<String>(),
+              _selectedSport!,
+            ))
+        .toList();
+  }
+
+  void _clearFilter() {
+    setState(() => _selectedSport = null);
+  }
+
+  static List<List<dynamic>> _iconFor(String game) {
+    final g = game.toLowerCase();
+    if (g.contains('football')) return HugeIcons.strokeRoundedFootball;
+    if (g.contains('cricket')) return HugeIcons.strokeRoundedCricketBat;
+    if (g.contains('badminton')) return HugeIcons.strokeRoundedBadminton;
+    if (g.contains('table tennis')) return HugeIcons.strokeRoundedTableTennisBat;
+    if (g.contains('tennis')) return HugeIcons.strokeRoundedTennisRacket;
+    if (g.contains('swimming')) return HugeIcons.strokeRoundedSwimming;
+    if (g.contains('pickleball')) return HugeIcons.strokeRoundedTennisRacket;
+    return HugeIcons.strokeRoundedWorkoutRun;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemCount: venues.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final venue = venues[index];
-        return _VenueCard(
-          venue: venue,
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => VenueDetailsScreen(venue: venue),
+    final filtered = _filteredVenues;
+    final canPop = Navigator.of(context).canPop();
+
+    Widget body;
+    if (filtered.isEmpty) {
+      body = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primarySoft.withValues(alpha: 0.2),
+                ),
+                child: const Center(
+                  child: AppIcon(
+                    HugeIcons.strokeRoundedFootballPitch,
+                    size: 40,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'No ${_selectedSport ?? ''} Venues',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.navy,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'There are currently no venues available\nfor ${_selectedSport ?? 'this sport'}.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _clearFilter,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'View All Venues',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      body = ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        itemCount: filtered.length + (_selectedSport != null ? 1 : 0),
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          if (_selectedSport != null && index == 0) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primarySoft.withValues(alpha: 0.45),
+                ),
+              ),
+              child: Row(
+                children: [
+                  AppIcon(
+                    _iconFor(_selectedSport!),
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Showing venues for',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        Text(
+                          _selectedSport!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.navy,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: _clearFilter,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Clear',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                          SizedBox(width: 2),
+                          Icon(
+                            Icons.close_rounded,
+                            size: 14,
+                            color: AppColors.primaryDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
-          },
-        );
-      },
-    );
+          }
+
+          final venueIndex = _selectedSport != null ? index - 1 : index;
+          final venue = filtered[venueIndex];
+          return _VenueCard(
+            venue: venue,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => VenueDetailsScreen(venue: venue),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+
+    if (canPop) {
+      return Scaffold(
+        backgroundColor: AppColors.backgroundBottom,
+        appBar: AppBar(
+          title: Text(_selectedSport != null ? '$_selectedSport Venues' : 'Venues'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: body,
+      );
+    }
+
+    return body;
   }
 }
 
@@ -365,22 +604,14 @@ class _SportIcons extends StatelessWidget {
   final List<String> games;
 
   static List<List<dynamic>> _iconFor(String game) {
-    switch (game) {
-      case 'Football':
-        return HugeIcons.strokeRoundedFootball;
-      case 'Cricket':
-        return HugeIcons.strokeRoundedCricketBat;
-      case 'Badminton':
-        return HugeIcons.strokeRoundedBadminton;
-      case 'Table Tennis':
-        return HugeIcons.strokeRoundedTableTennisBat;
-      case 'Tennis':
-        return HugeIcons.strokeRoundedTennisRacket;
-      case 'Swimming':
-        return HugeIcons.strokeRoundedSwimming;
-      default:
-        return HugeIcons.strokeRoundedWorkoutRun;
-    }
+    final g = game.toLowerCase();
+    if (g.contains('football')) return HugeIcons.strokeRoundedFootball;
+    if (g.contains('cricket')) return HugeIcons.strokeRoundedCricketBat;
+    if (g.contains('badminton')) return HugeIcons.strokeRoundedBadminton;
+    if (g.contains('table tennis')) return HugeIcons.strokeRoundedTableTennisBat;
+    if (g.contains('tennis')) return HugeIcons.strokeRoundedTennisRacket;
+    if (g.contains('swimming')) return HugeIcons.strokeRoundedSwimming;
+    return HugeIcons.strokeRoundedWorkoutRun;
   }
 
   @override

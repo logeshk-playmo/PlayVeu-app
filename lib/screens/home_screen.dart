@@ -3,10 +3,14 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
+import '../widgets/low_credit_dialog.dart';
+import 'booking_history_screen.dart';
 import 'credits_screen.dart';
+import 'equipment_history_screen.dart';
 import 'equipment_screen.dart';
 import 'leaderboard_screen.dart';
 import 'login_screen.dart';
+import 'my_game_history_screen.dart';
 import 'play_screen.dart';
 import 'profile_screen.dart';
 import 'venue_details_screen.dart';
@@ -23,8 +27,33 @@ class _HomeScreenState extends State<HomeScreen> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _tabIndex = 0;
 
-  int _credits = 20;
+  int get _credits => AppCreditsState.current;
   static const _titles = ['Home', 'Equipment', 'Venue', 'Play', 'Leaderboard'];
+
+  @override
+  void initState() {
+    super.initState();
+    AppCreditsState.balance.addListener(_onCreditsChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkLowCredits());
+  }
+
+  void _checkLowCredits() {
+    if (!mounted) return;
+    LowCreditDialog.checkAndShow(
+      context,
+      onBuyCredit: _openCredits,
+    );
+  }
+
+  @override
+  void dispose() {
+    AppCreditsState.balance.removeListener(_onCreditsChanged);
+    super.dispose();
+  }
+
+  void _onCreditsChanged() {
+    if (mounted) setState(() {});
+  }
 
   void _selectTab(int index) {
     setState(() => _tabIndex = index);
@@ -34,12 +63,49 @@ class _HomeScreenState extends State<HomeScreen> {
     _scaffoldKey.currentState?.openDrawer();
   }
 
+  void _openEquipmentHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const EquipmentHistoryScreen(),
+      ),
+    );
+  }
+
+  void _openBookingHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const BookingHistoryScreen(),
+      ),
+    );
+  }
+
+  void _openGameHistory() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MyGameHistoryScreen(
+          onExploreMatches: () {
+            Navigator.of(context).pop();
+            _selectTab(3);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openVenuesWithSport(String sport) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => VenuesScreen(selectedSport: sport),
+      ),
+    );
+  }
+
   void _openCredits() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CreditsScreen(
           credits: _credits,
-          onBalanceChanged: (total) => setState(() => _credits = total),
+          onBalanceChanged: (total) => AppCreditsState.current = total,
         ),
       ),
     );
@@ -50,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute<void>(
         builder: (_) => ProfileScreen(
           credits: _credits,
-          onCreditsChanged: (total) => setState(() => _credits = total),
+          onCreditsChanged: (total) => AppCreditsState.current = total,
         ),
       ),
     );
@@ -71,6 +137,43 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: Text(_titles[_tabIndex]),
         actions: [
+          Center(
+            child: Material(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(20),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: _openCredits,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/coin.png',
+                        width: 16,
+                        height: 16,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 5),
+                      const Text(
+                        'Buy Credit',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: 'Notifications',
             onPressed: () {
@@ -90,6 +193,18 @@ class _HomeScreenState extends State<HomeScreen> {
         onSelectTab: (index) {
           Navigator.of(context).pop();
           _selectTab(index);
+        },
+        onOpenEquipmentHistory: () {
+          Navigator.of(context).pop();
+          _openEquipmentHistory();
+        },
+        onOpenBookingHistory: () {
+          Navigator.of(context).pop();
+          _openBookingHistory();
+        },
+        onOpenGameHistory: () {
+          Navigator.of(context).pop();
+          _openGameHistory();
         },
         onOpenCredits: () {
           Navigator.of(context).pop();
@@ -119,7 +234,11 @@ class _HomeScreenState extends State<HomeScreen> {
             credits: _credits,
             onOpenCredits: _openCredits,
             onOpenProfile: _openProfile,
+            onOpenEquipmentHistory: _openEquipmentHistory,
+            onOpenBookingHistory: _openBookingHistory,
             onSeeAllVenues: () => _selectTab(2),
+            onSelectSport: _openVenuesWithSport,
+            onSelectTab: _selectTab,
           ),
           const EquipmentScreen(),
           const VenuesScreen(),
@@ -129,9 +248,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: DecoratedBox(
         decoration: AppSurfaces.bar,
-        child: NavigationBar(
-          selectedIndex: _tabIndex,
-          onDestinationSelected: _selectTab,
+        child: SafeArea(
+          top: false,
+          child: NavigationBar(
+            selectedIndex: _tabIndex,
+            onDestinationSelected: _selectTab,
           destinations: const [
             NavigationDestination(
               icon: AppIcon(HugeIcons.strokeRoundedHome01),
@@ -176,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -184,6 +305,9 @@ class _HomeDrawer extends StatelessWidget {
   const _HomeDrawer({
     required this.selectedTab,
     required this.onSelectTab,
+    required this.onOpenEquipmentHistory,
+    required this.onOpenBookingHistory,
+    required this.onOpenGameHistory,
     required this.onOpenCredits,
     required this.onOpenProfile,
     required this.onPlaceholder,
@@ -192,6 +316,9 @@ class _HomeDrawer extends StatelessWidget {
 
   final int selectedTab;
   final ValueChanged<int> onSelectTab;
+  final VoidCallback onOpenEquipmentHistory;
+  final VoidCallback onOpenBookingHistory;
+  final VoidCallback onOpenGameHistory;
   final VoidCallback onOpenCredits;
   final VoidCallback onOpenProfile;
   final ValueChanged<String> onPlaceholder;
@@ -261,19 +388,22 @@ class _HomeDrawer extends StatelessWidget {
                   ),
                   _DrawerTile(
                     icon: HugeIcons.strokeRoundedDumbbell02,
-                    label: 'Equipment',
-                    selected: selectedTab == 1,
-                    onTap: () => onSelectTab(1),
+                    label: 'My Equipments',
+                    onTap: onOpenEquipmentHistory,
                   ),
                   _DrawerTile(
                     icon: HugeIcons.strokeRoundedFootballPitch,
-                    label: 'Venue',
-                    selected: selectedTab == 2,
-                    onTap: () => onSelectTab(2),
+                    label: 'My Venues',
+                    onTap: onOpenBookingHistory,
                   ),
                   _DrawerTile(
                     icon: HugeIcons.strokeRoundedWorkoutRun,
-                    label: 'Play',
+                    label: 'My Games',
+                    onTap: onOpenGameHistory,
+                  ),
+                  _DrawerTile(
+                    icon: HugeIcons.strokeRoundedPlayCircle,
+                    label: 'Live Matches',
                     selected: selectedTab == 3,
                     onTap: () => onSelectTab(3),
                   ),
@@ -291,7 +421,7 @@ class _HomeDrawer extends StatelessWidget {
                   _DrawerTile(
                     icon: HugeIcons.strokeRoundedCalendar03,
                     label: 'Bookings',
-                    onTap: () => onPlaceholder('Bookings'),
+                    onTap: onOpenBookingHistory,
                   ),
                 ],
               ),
@@ -355,13 +485,21 @@ class _HomeDashboard extends StatelessWidget {
     required this.credits,
     required this.onOpenCredits,
     required this.onOpenProfile,
+    required this.onOpenEquipmentHistory,
+    required this.onOpenBookingHistory,
     required this.onSeeAllVenues,
+    this.onSelectSport,
+    this.onSelectTab,
   });
 
   final int credits;
   final VoidCallback onOpenCredits;
   final VoidCallback onOpenProfile;
+  final VoidCallback onOpenEquipmentHistory;
+  final VoidCallback onOpenBookingHistory;
   final VoidCallback onSeeAllVenues;
+  final ValueChanged<String>? onSelectSport;
+  final ValueChanged<int>? onSelectTab;
 
   @override
   Widget build(BuildContext context) {
@@ -373,8 +511,14 @@ class _HomeDashboard extends StatelessWidget {
           onOpenCredits: onOpenCredits,
           onOpenProfile: onOpenProfile,
         ),
-        const SizedBox(height: 32),
-        const _GamesBySportsCard(),
+        const SizedBox(height: 16),
+        _QuickActionsRow(
+          onOpenEquipmentHistory: onOpenEquipmentHistory,
+          onOpenBookingHistory: onOpenBookingHistory,
+          onSelectTab: onSelectTab,
+        ),
+        const SizedBox(height: 24),
+        _GamesBySportsCard(onSelectSport: onSelectSport),
         const SizedBox(height: 32),
         _HomeVenuesSection(onSeeAll: onSeeAllVenues),
       ],
@@ -382,8 +526,109 @@ class _HomeDashboard extends StatelessWidget {
   }
 }
 
+class _QuickActionsRow extends StatelessWidget {
+  const _QuickActionsRow({
+    this.onOpenEquipmentHistory,
+    this.onOpenBookingHistory,
+    this.onSelectTab,
+  });
+
+  final VoidCallback? onOpenEquipmentHistory;
+  final VoidCallback? onOpenBookingHistory;
+  final ValueChanged<int>? onSelectTab;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _QuickActionCard(
+            image: 'assets/my_equpiment_logo.jpg',
+            title: 'My Equipments',
+            onTap: () => onOpenEquipmentHistory?.call(),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _QuickActionCard(
+            image: 'assets/my_venue_logo.jpg',
+            title: 'My Venues',
+            onTap: () => onOpenBookingHistory?.call(),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _QuickActionCard(
+            image: 'assets/live_match_logo.jpg',
+            title: 'Live Matches',
+            onTap: () => onSelectTab?.call(3),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({
+    required this.image,
+    required this.title,
+    required this.onTap,
+  });
+
+  final String image;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: AppSurfaces.card(),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Image.asset(
+                    image,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navy,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GamesBySportsCard extends StatelessWidget {
-  const _GamesBySportsCard();
+  const _GamesBySportsCard({this.onSelectSport});
+
+  final ValueChanged<String>? onSelectSport;
 
   static const _games = <(String, String)>[
     ('Box Cricket', 'assets/sports/sport_box_cricket.png'),
@@ -422,14 +667,18 @@ class _GamesBySportsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 96,
+            height: 104,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _games.length,
               separatorBuilder: (context, index) => const SizedBox(width: 18),
               itemBuilder: (context, index) {
                 final game = _games[index];
-                return _SportItem(name: game.$1, image: game.$2);
+                return _SportItem(
+                  name: game.$1,
+                  image: game.$2,
+                  onTap: () => onSelectSport?.call(game.$1),
+                );
               },
             ),
           ),
@@ -596,32 +845,44 @@ class _HomeStat extends StatelessWidget {
 }
 
 class _SportItem extends StatelessWidget {
-  const _SportItem({required this.name, required this.image});
+  const _SportItem({
+    required this.name,
+    required this.image,
+    this.onTap,
+  });
 
   final String name;
   final String image;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 78,
-      child: Column(
-        children: [
-          Image.asset(image, width: 56, height: 56, fit: BoxFit.contain),
-          const SizedBox(height: 8),
-          Text(
-            name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-              height: 1.2,
-            ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Column(
+            children: [
+              Image.asset(image, width: 56, height: 56, fit: BoxFit.contain),
+              const SizedBox(height: 8),
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

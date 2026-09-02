@@ -134,7 +134,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(24, 8, 24, 24 + bottomInset),
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    8,
+                    24,
+                    24 + bottomInset,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
