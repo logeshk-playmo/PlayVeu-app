@@ -33,7 +33,7 @@ class _RentalConfirmationScreenState extends State<RentalConfirmationScreen> {
   }
 
   void _checkLowCredits() {
-    if (!mounted) return;
+    if (!mounted || widget.creditsUsed <= 0) return;
     LowCreditDialog.checkAndShow(
       context,
       onBuyCredit: _openCredits,
@@ -206,14 +206,16 @@ class _RentalConfirmationScreenState extends State<RentalConfirmationScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  'Credits Used',
+                                  'Payment',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
                                 Text(
-                                  '${widget.creditsUsed} Credits',
+                                  widget.creditsUsed > 0
+                                      ? '${widget.creditsUsed} Credits'
+                                      : 'Paid online',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
@@ -222,28 +224,31 @@ class _RentalConfirmationScreenState extends State<RentalConfirmationScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Remaining Credits',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.navy,
+                            if (widget.creditsUsed > 0) ...[
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Remaining Credits',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.navy,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '${widget.remainingCredits} Credits',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.primaryDark,
+                                  Text(
+                                    '${widget.remainingCredits} Credits',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.primaryDark,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../state/app_facility_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import 'venue_details_screen.dart';
@@ -17,86 +18,8 @@ class VenuesScreen extends StatefulWidget {
 
   final String? selectedSport;
 
-  static const List<Map<String, dynamic>> venues = [
-    {
-      'name': 'PlayVue Sports Academy',
-      'image':
-          'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60',
-      'images': [
-        'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=60',
-      ],
-      'rating': 4.6,
-      'reviews': 18,
-      'distance': '~2.4 Kms',
-      'location': 'Bengaluru, Karnataka',
-      'description':
-          'A modern sports academy offering multiple indoor and outdoor games.',
-      'games': ['Badminton', 'Football', 'Cricket'],
-      'facilities': ['Parking', 'Changing Rooms', 'Drinking Water'],
-      'hours': '6:00 AM - 10:00 PM',
-      'pricing': {'30 Mins': 300, '1 Hour': 500, '2 Hours': 900},
-    },
-    {
-      'name': 'Elite Sports Arena',
-      'image':
-          'https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?w=800&auto=format&fit=crop&q=60',
-      'images': [
-        'https://images.unsplash.com/photo-1521537634581-0dced2fee2ef?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=800&auto=format&fit=crop&q=60',
-      ],
-      'rating': 4.8,
-      'reviews': 32,
-      'distance': '~3.8 Kms',
-      'location': 'HSR Layout, Bengaluru',
-      'description':
-          'Premium sports facility with international standard courts.',
-      'games': ['Badminton', 'Tennis', 'Table Tennis'],
-      'facilities': ['AC Courts', 'Shower', 'Lounge'],
-      'hours': '5:00 AM - 11:00 PM',
-      'pricing': {'30 Mins': 400, '1 Hour': 700, '2 Hours': 1200},
-    },
-    {
-      'name': 'Smash Arena',
-      'image':
-          'https://images.unsplash.com/photo-1626225453014-a9ac938c647d?w=800&auto=format&fit=crop&q=60',
-      'images': [
-        'https://images.unsplash.com/photo-1626225453014-a9ac938c647d?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&auto=format&fit=crop&q=60',
-      ],
-      'rating': 4.4,
-      'reviews': 9,
-      'distance': '~5.1 Kms',
-      'location': 'Indiranagar, Bengaluru',
-      'description': 'Best destination for badminton and squash lovers.',
-      'games': ['Badminton', 'Squash'],
-      'facilities': ['Pro Shop', 'Coaching', 'Cafeteria'],
-      'hours': '6:00 AM - 10:00 PM',
-      'pricing': {'30 Mins': 250, '1 Hour': 450, '2 Hours': 800},
-    },
-    {
-      'name': 'Champions Sports Club',
-      'image':
-          'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&auto=format&fit=crop&q=60',
-      'images': [
-        'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&auto=format&fit=crop&q=60',
-      ],
-      'rating': 4.5,
-      'reviews': 21,
-      'distance': '~12.4 Kms',
-      'location': 'Whitefield, Bengaluru',
-      'description':
-          'Large multi-sport complex for families and professionals.',
-      'games': ['Football', 'Cricket', 'Swimming'],
-      'facilities': ['Large Ground', 'Floodlights', 'Lockers'],
-      'hours': '6:00 AM - 11:00 PM',
-      'pricing': {'30 Mins': 350, '1 Hour': 600, '2 Hours': 1000},
-    },
-  ];
+  static List<Map<String, dynamic>> get venues =>
+      AppFacilityState.visibleToPlayers;
 
   @override
   State<VenuesScreen> createState() => _VenuesScreenState();
@@ -109,6 +32,17 @@ class _VenuesScreenState extends State<VenuesScreen> {
   void initState() {
     super.initState();
     _selectedSport = widget.selectedSport;
+    AppFacilityState.facilities.addListener(_onFacilitiesChanged);
+  }
+
+  @override
+  void dispose() {
+    AppFacilityState.facilities.removeListener(_onFacilitiesChanged);
+    super.dispose();
+  }
+
+  void _onFacilitiesChanged() {
+    if (mounted) setState(() {});
   }
 
   @override

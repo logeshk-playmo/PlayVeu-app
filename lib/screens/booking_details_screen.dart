@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../state/app_booking_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/insufficient_credits_dialog.dart';
@@ -169,6 +170,29 @@ class BookingDetailsScreen extends StatelessWidget {
                   onPressed: () {
                     // 1. Deduct credits
                     AppCreditsState.deduct(creditsRequired);
+                    AppBookingState.addLedger(
+                      'Booking · ${venue['name']}',
+                      -creditsRequired,
+                    );
+                    AppBookingState.add(
+                      VenueBookingRecord(
+                        id: 'b_${DateTime.now().millisecondsSinceEpoch}',
+                        venueName: venue['name'] as String? ?? 'Venue',
+                        location: venue['location'] as String? ?? '',
+                        image: venue['image'] as String? ?? '',
+                        sport: bookingData['game'] as String? ?? '',
+                        court: bookingData['court'] as String? ?? '',
+                        date: bookingData['date'] as String? ?? '',
+                        startTime: bookingData['startTime'] as String? ?? '',
+                        endTime: bookingData['endTime'] as String? ?? '',
+                        duration: bookingData['duration'] as String? ?? '',
+                        creditsUsed: creditsRequired,
+                        status: 'Confirmed',
+                        isFullDay: (bookingData['duration'] as String? ?? '')
+                            .toLowerCase()
+                            .contains('full'),
+                      ),
+                    );
 
                     // 2. Close dialog
                     Navigator.pop(dialogCtx);

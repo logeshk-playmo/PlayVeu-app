@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../state/app_session.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primary_button.dart';
+import 'admin/admin_home_screen.dart';
 import 'home_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -105,8 +107,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     await Future<void>.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
 
+    AppSession.signIn(widget.phoneNumber);
+    final home = AppSession.isAdmin
+        ? const AdminHomeScreen()
+        : const HomeScreen();
+
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+      MaterialPageRoute<void>(builder: (_) => home),
       (route) => false,
     );
   }

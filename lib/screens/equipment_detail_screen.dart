@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../state/app_catalogue_state.dart';
+import '../state/app_rental_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/primary_button.dart';
-import 'equipment_screen.dart';
+import 'rental_confirmation_screen.dart';
 
 class EquipmentDetailScreen extends StatelessWidget {
   const EquipmentDetailScreen({super.key, required this.item});
@@ -12,8 +14,23 @@ class EquipmentDetailScreen extends StatelessWidget {
   final EquipmentItem item;
 
   void _handlePayOnline(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Online payment is coming soon.')),
+    final latest = AppCatalogueState.byId(item.id) ?? item;
+    if (latest.stockCount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This item is out of stock.')),
+      );
+      return;
+    }
+
+    AppRentalState.rent(latest);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => RentalConfirmationScreen(
+          item: latest,
+          creditsUsed: 0,
+          remainingCredits: AppCreditsState.current,
+        ),
+      ),
     );
   }
 

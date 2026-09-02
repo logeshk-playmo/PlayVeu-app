@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../state/app_booking_state.dart';
+import '../state/app_membership_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/primary_button.dart';
 import 'credit_success_screen.dart';
+import 'memberships_screen.dart';
 
 class CreditsScreen extends StatefulWidget {
   const CreditsScreen({super.key, this.credits = 20, this.onBalanceChanged});
@@ -44,6 +47,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
 
     final added = _plan.credits;
     AppCreditsState.add(added);
+    AppBookingState.addLedger('Credit pack', added);
     final next = AppCreditsState.current;
     setState(() {
       _balance = next;
@@ -68,7 +72,82 @@ class _CreditsScreenState extends State<CreditsScreen> {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         children: [
           _BalanceCard(balance: _balance),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          ValueListenableBuilder(
+            valueListenable: AppMembershipState.plans,
+            builder: (context, plans, child) {
+              if (AppMembershipState.published.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              final active = AppMembershipState.activePlan.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppSurfaces.radius),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MembershipsScreen(),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(AppSurfaces.radius),
+                    child: Ink(
+                      decoration: AppSurfaces.card(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          children: [
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Memberships',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.navy,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Plans for cheaper facility bookings',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              active?.name ?? 'View',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const AppIcon(
+                              HugeIcons.strokeRoundedArrowRight01,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
           const Text(
             'Choose a pack',
             style: TextStyle(

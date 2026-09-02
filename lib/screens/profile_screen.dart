@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../theme/app_theme.dart';
+import '../state/app_membership_state.dart';
 import '../widgets/app_icon.dart';
 import 'booking_history_screen.dart';
 import 'credits_screen.dart';
+import 'memberships_screen.dart';
 import 'my_game_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -165,6 +167,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 label: 'My Games',
                 value: 'View history',
                 onTap: _openGameHistory,
+              ),
+              _ProfileAction(
+                icon: HugeIcons.strokeRoundedChampion,
+                label: 'Memberships',
+                value: AppMembershipState.activePlan.value?.name ?? 'View plans',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const MembershipsScreen(),
+                    ),
+                  );
+                },
               ),
               _ProfileAction(
                 icon: HugeIcons.strokeRoundedSettings01,

@@ -13,6 +13,7 @@ import 'package:playveuw_app/screens/equipment_history_screen.dart';
 import 'package:playveuw_app/screens/equipment_screen.dart';
 import 'package:playveuw_app/screens/home_screen.dart';
 import 'package:playveuw_app/screens/login_screen.dart';
+import 'package:playveuw_app/screens/memberships_screen.dart';
 import 'package:playveuw_app/screens/match_registration_screen.dart';
 import 'package:playveuw_app/screens/my_game_history_screen.dart';
 import 'package:playveuw_app/screens/otp_verification_screen.dart';
@@ -23,13 +24,23 @@ import 'package:playveuw_app/screens/select_sport_screen.dart';
 import 'package:playveuw_app/screens/splash_screen.dart';
 import 'package:playveuw_app/screens/venue_details_screen.dart';
 import 'package:playveuw_app/screens/venues_screen.dart';
+import 'package:playveuw_app/screens/admin/admin_home_screen.dart';
+import 'package:playveuw_app/state/app_booking_state.dart';
+import 'package:playveuw_app/state/app_catalogue_state.dart';
+import 'package:playveuw_app/state/app_facility_state.dart';
+import 'package:playveuw_app/state/app_membership_state.dart';
+import 'package:playveuw_app/state/app_rental_state.dart';
+import 'package:playveuw_app/state/app_session.dart';
+import 'package:playveuw_app/state/prototype_state.dart';
 import 'package:playveuw_app/theme/app_theme.dart';
+import 'package:playveuw_app/widgets/filter_pill.dart';
 
 void main() {
   setUp(() {
     AppCreditsState.current = 20;
     AppCreditsState.hasShownLowCreditDialog = false;
     AppPlayState.reset();
+    PrototypeState.reset();
   });
 
   testWidgets('splash navigates to login after 3 seconds', (tester) async {
@@ -62,7 +73,7 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.enterText(find.byType(TextFormField), '8888888888');
+    await tester.enterText(find.byType(TextFormField), '7777777777');
     await tester.tap(find.text('Send OTP'));
     await tester.pump();
     expect(find.text('Enter a valid 10-digit mobile number'), findsOneWidget);
@@ -178,13 +189,12 @@ void main() {
 
     // Tap Pay Online button
     await tester.tap(find.text('Pay Online'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify confirmation snackbar appears
-    expect(find.text('Online payment is coming soon.'), findsOneWidget);
+    expect(find.text('Rental Confirmed!'), findsOneWidget);
+    expect(find.text('Paid online'), findsOneWidget);
 
-    // Pop back using the back button
-    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+    await tester.tap(find.text('DONE'));
     await tester.pumpAndSettle();
 
     // Tap Football Size 5
@@ -482,11 +492,15 @@ void main() {
 
     // Test Pay Online
     await tester.tap(find.text('Pay Online'));
-    await tester.pump();
-    expect(find.text('Online payment is coming soon.'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Rental Confirmed!'), findsOneWidget);
+    expect(find.text('Paid online'), findsOneWidget);
+    expect(find.text('Use Credits'), findsNothing);
 
     // Credits balance remains untouched
     expect(AppCreditsState.current, 50);
+    expect(AppRentalState.rentals.value.first.name, 'Yonex Astrox Racket');
+    expect(AppCatalogueState.byId('eq1')!.stockCount, 7);
   });
 
   testWidgets('Low Credit Warning Dialog triggers when credits < 10 once per session', (tester) async {
@@ -794,6 +808,8 @@ void main() {
     // Verify dialog is closed and status changed to Returned
     expect(find.text('Status: Returned'), findsWidgets);
     expect(find.text('Yonex Astrox Racket has been returned successfully.'), findsOneWidget);
+    expect(AppRentalState.rentals.value.firstWhere((r) => r.id == 'r1').status, 'Returned');
+    expect(AppCatalogueState.byId('eq1')!.stockCount, 9);
 
     // Scroll to see returned history items
     await tester.scrollUntilVisible(find.text('Cricket Kit'), 200);
@@ -1230,6 +1246,139 @@ void main() {
     // Verify NO 'Accept Request' button appears anywhere
     expect(find.text('Accept Request'), findsNothing);
     expect(find.textContaining('Accept Request'), findsNothing);
+  });
+
+  testWidgets('admin phone OTP opens AdminHomeScreen', (tester) async {
+    await tester.pumpWidget(const PlayVueApp());
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextFormField), AppSession.adminPhone);
+    await tester.tap(find.text('Send OTP'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+
+    expect(find.byType(OtpVerificationScreen), findsOneWidget);
+
+    final otpFields = find.descendant(
+      of: find.byType(OtpVerificationScreen),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(otpFields.at(0), '1');
+    await tester.enterText(otpFields.at(1), '2');
+    await tester.enterText(otpFields.at(2), '3');
+    await tester.enterText(otpFields.at(3), '4');
+    await tester.tap(find.text('Verify'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+
+    expect(find.byType(AdminHomeScreen), findsOneWidget);
+    expect(find.text('Plans'), findsWidgets);
+    expect(find.text('PlayVue Plus'), findsOneWidget);
+    expect(find.text('Published'), findsWidgets);
+  });
+
+  testWidgets('admin can publish a plan and player can subscribe', (tester) async {
+    final weekend = AppMembershipState.plans.value
+        .firstWhere((p) => p.id == 'plan_weekend');
+    weekend.published = true;
+    AppMembershipState.upsert(weekend);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: MembershipsScreen()),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Weekend Pass'), findsOneWidget);
+    await tester.tap(find.text('Subscribe').last);
+    await tester.pumpAndSettle();
+    expect(AppMembershipState.activePlan.value?.id, 'plan_weekend');
+    expect(AppCreditsState.current, 100);
+  });
+
+  testWidgets('admin facility status hides venue from players', (tester) async {
+    final smash = AppFacilityState.byId('v3')!;
+    smash['status'] = 'Hidden';
+    AppFacilityState.upsert(smash);
+
+    expect(
+      VenuesScreen.venues.any((v) => v['id'] == 'v3'),
+      isFalse,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: VenueDetailsScreen(venue: smash)),
+    );
+    expect(find.textContaining('UNAVAILABLE'), findsOneWidget);
+  });
+
+  testWidgets('admin can override booking status and refund credits', (tester) async {
+    AppCreditsState.current = 20;
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.tap(find.text('Bookings'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Smash Arena').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Cancelled'));
+    await tester.pumpAndSettle();
+
+    expect(
+      AppBookingState.bookings.value.firstWhere((b) => b.id == '1').status,
+      'Cancelled',
+    );
+    expect(AppCreditsState.current, 70);
+  });
+
+  testWidgets('admin can override rental status and restock', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.tap(find.text('Catalogue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(Tab, 'Rentals'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yonex Astrox Racket'), findsWidgets);
+    expect(find.textContaining('due 04 Sep 2026'), findsWidgets);
+
+    await tester.tap(find.text('Yonex Astrox Racket').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Returned'));
+    await tester.pumpAndSettle();
+
+    expect(
+      AppRentalState.rentals.value.firstWhere((r) => r.id == 'r1').status,
+      'Returned',
+    );
+    expect(AppCatalogueState.byId('eq1')!.stockCount, 9);
+  });
+
+  testWidgets('admin catalogue includes shoes and player can filter', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: EquipmentScreen())),
+    );
+    await tester.tap(find.widgetWithText(FilterPill, 'Shoes'));
+    await tester.pumpAndSettle();
+    expect(find.text('Yonex Power Cushion Shoes'), findsOneWidget);
+    expect(find.text('Nivia Football Studs'), findsOneWidget);
+    expect(find.text('Yonex Astrox Racket'), findsNothing);
+  });
+
+  testWidgets('facility credit mapping is used for Smash Arena badminton', (tester) async {
+    final smash = VenuesScreen.venues.firstWhere((v) => v['name'] == 'Smash Arena');
+    await tester.pumpWidget(MaterialApp(home: SelectSlotScreen(venue: smash)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Badminton'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('1 Hour'));
+    await tester.tap(find.text('1 Hour'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('09:00 AM'));
+    await tester.tap(find.text('09:00 AM'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('₹450 / 45 Credits'), findsOneWidget);
   });
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
+import '../state/app_facility_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import 'booking_details_screen.dart';
@@ -218,7 +219,13 @@ class _SelectSlotScreenState extends State<SelectSlotScreen> {
     return basePrice - discount;
   }
 
-  int get _payableCredits => _payableAmount ~/ 10;
+  int get _payableCredits => AppFacilityState.creditsForBooking(
+        venue: widget.venue,
+        sport: _selectedGame ?? '',
+        amountInr: _payableAmount,
+        durationMinutes:
+            _isFullDay ? _totalOperatingMinutes : _selectedDurationMinutes,
+      );
 
   String _calculateEndTime(String startTime, int durationMinutes) {
     try {

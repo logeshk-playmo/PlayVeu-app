@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../state/app_facility_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 import 'select_slot_screen.dart';
@@ -205,6 +206,38 @@ class VenueDetailsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
+                  if (venue['cancellationNote'] != null ||
+                      venue['includedNote'] != null) ...[
+                    const Text(
+                      'Rental information',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navy,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (venue['includedNote'] != null)
+                      Text(
+                        venue['includedNote'] as String,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    if (venue['cancellationNote'] != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        venue['cancellationNote'] as String,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                  ],
                 ],
               ),
             ),
@@ -220,14 +253,21 @@ class VenueDetailsScreen extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => SelectSlotScreen(venue: venue),
-                    ),
-                  );
-                },
-                child: const Text('BOOK NOW'),
+                onPressed: AppFacilityState.isBookable(venue)
+                    ? () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                SelectSlotScreen(venue: venue),
+                          ),
+                        );
+                      }
+                    : null,
+                child: Text(
+                  AppFacilityState.isBookable(venue)
+                      ? 'BOOK NOW'
+                      : 'UNAVAILABLE (${venue['status'] ?? 'Closed'})',
+                ),
               ),
             ),
           ),

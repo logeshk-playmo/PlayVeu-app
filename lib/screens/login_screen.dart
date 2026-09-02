@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../state/app_session.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primary_button.dart';
 import 'otp_verification_screen.dart';
@@ -13,8 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  static const String _prototypePhoneNumber = '9999999999';
-
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _phoneFocus = FocusNode();
@@ -35,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!RegExp(r'^[6-9]\d{9}$').hasMatch(phone)) {
       return 'Enter a valid 10-digit Indian mobile number';
     }
-    if (phone != _prototypePhoneNumber) {
+    if (phone != AppSession.playerPhone && phone != AppSession.adminPhone) {
       return 'Enter a valid 10-digit mobile number';
     }
     return null;
@@ -108,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onFieldSubmitted: (_) => _onSendOtp(),
                 decoration: const InputDecoration(
                   counterText: '',
-                  hintText: _prototypePhoneNumber,
+                  hintText: '10-digit mobile number',
                   prefixText: '+91  ',
                 ),
               ),

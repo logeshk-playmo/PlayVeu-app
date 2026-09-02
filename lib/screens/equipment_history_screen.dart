@@ -1,32 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../state/app_rental_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_icon.dart';
 
-class EquipmentRentalRecord {
-  EquipmentRentalRecord({
-    required this.id,
-    required this.name,
-    required this.category,
-    required this.image,
-    required this.rentedDate,
-    required this.duration,
-    required this.returnDate,
-    required this.price,
-    required this.status,
-  });
-
-  final String id;
-  final String name;
-  final String category;
-  final String image;
-  final String rentedDate;
-  final String duration;
-  final String returnDate;
-  final String price;
-  String status;
-}
+export '../state/app_rental_state.dart' show EquipmentRentalRecord;
 
 class EquipmentHistoryScreen extends StatefulWidget {
   const EquipmentHistoryScreen({super.key});
@@ -36,57 +15,20 @@ class EquipmentHistoryScreen extends StatefulWidget {
 }
 
 class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
-  late List<EquipmentRentalRecord> _rentals;
-
   @override
   void initState() {
     super.initState();
-    _rentals = [
-      EquipmentRentalRecord(
-        id: '1',
-        name: 'Yonex Astrox Racket',
-        category: 'Sports Equipment',
-        image: 'assets/sports/sport_badminton.png',
-        rentedDate: '02 Sep 2026',
-        duration: '2 Days',
-        returnDate: '04 Sep 2026',
-        price: '₹200',
-        status: 'Rented',
-      ),
-      EquipmentRentalRecord(
-        id: '2',
-        name: 'Football Size 5',
-        category: 'Sports Equipment',
-        image: 'assets/sports/sport_football.png',
-        rentedDate: '01 Sep 2026',
-        duration: '3 Days',
-        returnDate: '04 Sep 2026',
-        price: '₹150',
-        status: 'Rented',
-      ),
-      EquipmentRentalRecord(
-        id: '3',
-        name: 'Cricket Kit',
-        category: 'Sports Equipment',
-        image: 'assets/sports/sport_box_cricket.png',
-        rentedDate: '25 Aug 2026',
-        duration: '4 Days',
-        returnDate: '29 Aug 2026',
-        price: '₹450',
-        status: 'Returned',
-      ),
-      EquipmentRentalRecord(
-        id: '4',
-        name: 'TT Paddle Set',
-        category: 'Sports Equipment',
-        image: 'assets/sports/sport_table_tennis.png',
-        rentedDate: '20 Aug 2026',
-        duration: '1 Day',
-        returnDate: '21 Aug 2026',
-        price: '₹100',
-        status: 'Returned',
-      ),
-    ];
+    AppRentalState.rentals.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    AppRentalState.rentals.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _handleReturn(EquipmentRentalRecord rental) async {
@@ -137,9 +79,7 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
     );
 
     if (confirmed == true && mounted) {
-      setState(() {
-        rental.status = 'Returned';
-      });
+      AppRentalState.markReturned(rental.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${rental.name} has been returned successfully.'),
@@ -150,6 +90,8 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final rentals = AppRentalState.rentals.value;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundBottom,
       appBar: AppBar(
@@ -159,7 +101,7 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: _rentals.isEmpty
+      body: rentals.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -198,10 +140,10 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
             )
           : ListView.separated(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              itemCount: _rentals.length,
+              itemCount: rentals.length,
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
-                final rental = _rentals[index];
+                final rental = rentals[index];
                 return _RentalCard(
                   rental: rental,
                   onReturn: () => _handleReturn(rental),
@@ -223,7 +165,7 @@ class _RentalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRented = rental.status == 'Rented';
+    final canReturn = rental.status == 'Rented' || rental.status == 'Overdue';
 
     return Container(
       decoration: AppSurfaces.card(),
@@ -243,8 +185,10 @@ class _RentalCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.fieldBorder),
                 ),
-                child: Image.asset(
-                  rental.image,
+                child: Image(
+                  image: rental.image.startsWith('http')
+                      ? NetworkImage(rental.image)
+                      : AssetImage(rental.image) as ImageProvider,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => const Icon(
                     Icons.sports_tennis_rounded,
@@ -302,7 +246,7 @@ class _RentalCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _StatusBadge(status: rental.status),
-              if (isRented)
+              if (canReturn)
                 FilledButton(
                   onPressed: onReturn,
                   style: FilledButton.styleFrom(
@@ -340,16 +284,28 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isRented = status == 'Rented';
-    final bg = isRented
-        ? AppColors.primarySoft.withValues(alpha: 0.18)
-        : AppColors.accent.withValues(alpha: 0.15);
-    final border = isRented
-        ? AppColors.primarySoft.withValues(alpha: 0.6)
-        : AppColors.accent.withValues(alpha: 0.4);
-    final textCol = isRented ? AppColors.primaryDark : const Color(0xFF1E824C);
-    final icon = isRented
-        ? HugeIcons.strokeRoundedClock01
-        : HugeIcons.strokeRoundedCheckmarkCircle02;
+    final isOverdue = status == 'Overdue';
+    final isDamaged = status == 'Damaged';
+    final Color bg;
+    final Color border;
+    final Color textCol;
+    final List<List<dynamic>> icon;
+    if (isOverdue || isDamaged) {
+      bg = const Color(0xFFE74C3C).withValues(alpha: 0.12);
+      border = const Color(0xFFE74C3C).withValues(alpha: 0.4);
+      textCol = const Color(0xFFE74C3C);
+      icon = HugeIcons.strokeRoundedClock01;
+    } else if (isRented) {
+      bg = AppColors.primarySoft.withValues(alpha: 0.18);
+      border = AppColors.primarySoft.withValues(alpha: 0.6);
+      textCol = AppColors.primaryDark;
+      icon = HugeIcons.strokeRoundedClock01;
+    } else {
+      bg = AppColors.accent.withValues(alpha: 0.15);
+      border = AppColors.accent.withValues(alpha: 0.4);
+      textCol = const Color(0xFF1E824C);
+      icon = HugeIcons.strokeRoundedCheckmarkCircle02;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

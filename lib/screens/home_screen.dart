@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../theme/app_theme.dart';
+import '../state/app_session.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/low_credit_dialog.dart';
 import 'booking_history_screen.dart';
@@ -221,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ).showSnackBar(SnackBar(content: Text('$label is coming soon')));
         },
         onLogout: () {
+          AppSession.reset();
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
             (route) => false,
