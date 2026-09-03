@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../state/app_session.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/filter_pill.dart';
+import '../login_screen.dart';
 
 class AdminSectionLabel extends StatelessWidget {
   const AdminSectionLabel(this.text, {super.key});
@@ -141,5 +143,60 @@ Color adminStatusColor(String status) {
       return const Color(0xFFE74C3C);
     default:
       return AppColors.primaryDark;
+  }
+}
+
+Future<void> showAdminLogoutDialog(BuildContext context) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      title: const Text(
+        'Logout?',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppColors.navy,
+        ),
+      ),
+      content: const Text(
+        'Are you sure you want to logout?',
+        style: TextStyle(
+          fontSize: 14,
+          color: AppColors.textSecondary,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text(
+            'Cancel',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFE74C3C),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+          child: const Text('Logout'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed == true && context.mounted) {
+    AppSession.reset();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/low_credit_dialog.dart';
-import '../widgets/primary_button.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/low_credit_dialog.dart';
+import '../../widgets/primary_button.dart';
 import 'credits_screen.dart';
 import 'equipment_screen.dart';
 
@@ -14,11 +14,13 @@ class RentalConfirmationScreen extends StatefulWidget {
     required this.item,
     required this.creditsUsed,
     required this.remainingCredits,
+    this.uniqueItemId,
   });
 
   final EquipmentItem item;
   final int creditsUsed;
   final int remainingCredits;
+  final String? uniqueItemId;
 
   @override
   State<RentalConfirmationScreen> createState() =>
@@ -179,6 +181,31 @@ class _RentalConfirmationScreenState extends State<RentalConfirmationScreen> {
                               padding: EdgeInsets.symmetric(vertical: 12),
                               child: Divider(color: AppColors.fieldBorder),
                             ),
+
+                            if (widget.uniqueItemId != null) ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Item ID',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  Text(
+                                    widget.uniqueItemId!,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                            ],
 
                             // Details
                             Row(

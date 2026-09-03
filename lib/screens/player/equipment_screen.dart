@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../state/app_catalogue_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/filter_pill.dart';
+import '../../state/app_catalogue_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/filter_pill.dart';
 import 'equipment_detail_screen.dart';
 
-export '../state/app_catalogue_state.dart' show EquipmentItem, CatalogueType;
+export '../../state/app_catalogue_state.dart' show EquipmentItem, CatalogueType;
 
 class EquipmentScreen extends StatefulWidget {
   const EquipmentScreen({super.key});

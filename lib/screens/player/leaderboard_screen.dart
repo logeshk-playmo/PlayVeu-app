@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
 
 final _pointsFormat = NumberFormat('#,###');
 

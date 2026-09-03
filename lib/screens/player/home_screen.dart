@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_theme.dart';
-import '../state/app_session.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/low_credit_dialog.dart';
+import '../../state/app_session.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/low_credit_dialog.dart';
+import '../login_screen.dart';
 import 'booking_history_screen.dart';
 import 'credits_screen.dart';
 import 'equipment_history_screen.dart';
 import 'equipment_screen.dart';
 import 'leaderboard_screen.dart';
-import 'login_screen.dart';
 import 'my_game_history_screen.dart';
 import 'play_screen.dart';
 import 'profile_screen.dart';
@@ -420,11 +420,11 @@ class _HomeDrawer extends StatelessWidget {
                     label: 'Credits',
                     onTap: onOpenCredits,
                   ),
-                  _DrawerTile(
-                    icon: HugeIcons.strokeRoundedCalendar03,
-                    label: 'Bookings',
-                    onTap: onOpenBookingHistory,
-                  ),
+                  // _DrawerTile(
+                  //   icon: HugeIcons.strokeRoundedCalendar03,
+                  //   label: 'Bookings',
+                  //   onTap: onOpenBookingHistory,
+                  // ),
                 ],
               ),
             ),

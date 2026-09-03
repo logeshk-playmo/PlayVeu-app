@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/low_credit_dialog.dart';
-import '../widgets/primary_button.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/low_credit_dialog.dart';
+import '../../widgets/primary_button.dart';
 import 'credits_screen.dart';
 
 class BookingConfirmationScreen extends StatefulWidget {

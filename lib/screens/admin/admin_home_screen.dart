@@ -5,9 +5,16 @@ import '../../theme/app_theme.dart';
 import '../../widgets/app_icon.dart';
 import 'admin_bookings_screen.dart';
 import 'admin_catalogue_screen.dart';
+import 'admin_drawer.dart';
 import 'admin_facilities_screen.dart';
 import 'admin_more_screen.dart';
+import 'admin_notification_screen.dart';
+import 'admin_plans_list_screen.dart';
 import 'admin_plans_screen.dart';
+import 'admin_player_list_screen.dart';
+import 'admin_revenue_screen.dart';
+import 'admin_settings_screen.dart';
+import 'admin_ui.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -18,10 +25,12 @@ class AdminHomeScreen extends StatefulWidget {
 
 class _AdminHomeScreenState extends State<AdminHomeScreen>
     with SingleTickerProviderStateMixin {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _tabIndex = 0;
+  AdminDrawerItem _selectedDrawerItem = AdminDrawerItem.home;
   late final TabController _catalogueTabs;
 
-  static const _titles = ['Plans', 'Facilities', 'Bookings', 'Catalogue', 'Profile'];
+  static const _titles = ['Home', 'Facilities', 'Bookings', 'Catalogue', 'Profile'];
 
   @override
   void initState() {
@@ -46,6 +55,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
       Navigator.of(context).push(
         MaterialPageRoute<void>(builder: (_) => const AdminPlanEditorScreen()),
       );
+    } else if (_tabIndex == 1) {
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const AdminFacilityEditorScreen(),
+        ),
+      );
     } else if (_tabIndex == 3) {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
@@ -55,34 +70,152 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
     }
   }
 
+  void _onSelectDrawerItem(AdminDrawerItem item) {
+    Navigator.of(context).pop();
+    switch (item) {
+      case AdminDrawerItem.home:
+        setState(() {
+          _selectedDrawerItem = item;
+          _tabIndex = 0;
+        });
+        break;
+      case AdminDrawerItem.plans:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const AdminPlansListScreen(),
+          ),
+        );
+        break;
+      case AdminDrawerItem.players:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const AdminPlayerListScreen(),
+          ),
+        );
+        break;
+      case AdminDrawerItem.revenue:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const AdminRevenueScreen(),
+          ),
+        );
+        break;
+    }
+  }
+
+  void _onDestinationSelected(int index) {
+    setState(() {
+      _tabIndex = index;
+      switch (index) {
+        case 0:
+          _selectedDrawerItem = AdminDrawerItem.home;
+          break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+          break;
+      }
+    });
+  }
+
+  String get _addBtnLabel {
+    switch (_tabIndex) {
+      case 0:
+        return 'Add Plan';
+      case 1:
+        return 'Add Facility';
+      case 3:
+        return 'Add Item';
+      default:
+        return 'Add';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final showCatalogueTabs = _tabIndex == 3;
     final canAdd =
-        _tabIndex == 0 || (_tabIndex == 3 && _catalogueTabs.index == 0);
+        _tabIndex == 0 || _tabIndex == 1 || (_tabIndex == 3 && _catalogueTabs.index == 0);
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.backgroundBottom,
+      drawer: AdminDrawer(
+        selectedItem: _selectedDrawerItem,
+        onSelectItem: _onSelectDrawerItem,
+        onLogout: () {
+          Navigator.of(context).pop();
+          showAdminLogoutDialog(context);
+        },
+      ),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 20,
+        leadingWidth: 48,
+        titleSpacing: 0,
+        leading: IconButton(
+          tooltip: 'Menu',
+          icon: const AppIcon(HugeIcons.strokeRoundedMenu01, size: 22),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        ),
         title: Text(_titles[_tabIndex]),
         actions: [
           if (canAdd)
             Padding(
-              padding: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.only(right: 6),
               child: Center(
                 child: FilledButton(
                   onPressed: _onAdd,
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(0, 36),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: Text(_tabIndex == 0 ? 'Add plan' : 'Add item'),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_tabIndex == 0) ...[
+                        Image.asset(
+                          'assets/add_plan_logo.png',
+                          width: 18,
+                          height: 18,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                            Icons.add,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ] else ...[
+                        const Icon(
+                          Icons.add,
+                          size: 18,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(_addBtnLabel),
+                    ],
+                  ),
                 ),
               ),
             ),
+          IconButton(
+            tooltip: 'Notifications',
+            icon: const AppIcon(
+              HugeIcons.strokeRoundedNotification01,
+              size: 22,
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AdminNotificationScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 4),
         ],
         bottom: showCatalogueTabs
             ? TabBar(
@@ -111,11 +244,35 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
       body: IndexedStack(
         index: _tabIndex,
         children: [
-          const AdminPlansScreen(),
+          AdminPlansScreen(
+            onOpenProfile: () => _onDestinationSelected(4),
+            onOpenFacilities: () => _onDestinationSelected(1),
+            onOpenBookings: () => _onDestinationSelected(2),
+            onOpenCatalogue: () => _onDestinationSelected(3),
+            onOpenCatalogueRentals: () {
+              _onDestinationSelected(3);
+              _catalogueTabs.animateTo(1);
+            },
+          ),
           const AdminFacilitiesScreen(),
           const AdminBookingsScreen(),
           AdminCatalogueScreen(tabController: _catalogueTabs),
-          const AdminMoreScreen(),
+          AdminMoreScreen(
+            onOpenNotifications: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AdminNotificationScreen(),
+                ),
+              );
+            },
+            onOpenSettings: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AdminSettingsScreen(),
+                ),
+              );
+            },
+          ),
         ],
       ),
       bottomNavigationBar: DecoratedBox(
@@ -124,15 +281,15 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
           top: false,
           child: NavigationBar(
             selectedIndex: _tabIndex,
-            onDestinationSelected: (index) => setState(() => _tabIndex = index),
+            onDestinationSelected: _onDestinationSelected,
             destinations: const [
               NavigationDestination(
-                icon: AppIcon(HugeIcons.strokeRoundedWallet01),
+                icon: AppIcon(HugeIcons.strokeRoundedHome01),
                 selectedIcon: AppIcon(
-                  HugeIcons.strokeRoundedWallet01,
+                  HugeIcons.strokeRoundedHome01,
                   strokeWidth: 2.4,
                 ),
-                label: 'Plans',
+                label: 'Home',
               ),
               NavigationDestination(
                 icon: AppIcon(HugeIcons.strokeRoundedFootballPitch),

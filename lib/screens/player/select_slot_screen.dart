@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
-import '../state/app_facility_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
+import '../../state/app_facility_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
 import 'booking_details_screen.dart';
 
 class SelectSlotScreen extends StatefulWidget {

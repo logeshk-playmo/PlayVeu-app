@@ -2,29 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:playveuw_app/main.dart';
-import 'package:playveuw_app/screens/booking_confirmation_screen.dart';
-import 'package:playveuw_app/screens/booking_details_screen.dart';
-import 'package:playveuw_app/screens/booking_history_screen.dart';
-import 'package:playveuw_app/screens/create_match_screen.dart';
-import 'package:playveuw_app/screens/create_tournament_screen.dart';
-import 'package:playveuw_app/screens/credit_success_screen.dart';
-import 'package:playveuw_app/screens/equipment_detail_screen.dart';
-import 'package:playveuw_app/screens/equipment_history_screen.dart';
-import 'package:playveuw_app/screens/equipment_screen.dart';
-import 'package:playveuw_app/screens/home_screen.dart';
 import 'package:playveuw_app/screens/login_screen.dart';
-import 'package:playveuw_app/screens/memberships_screen.dart';
-import 'package:playveuw_app/screens/match_registration_screen.dart';
-import 'package:playveuw_app/screens/my_game_history_screen.dart';
 import 'package:playveuw_app/screens/otp_verification_screen.dart';
-import 'package:playveuw_app/screens/play_screen.dart';
-import 'package:playveuw_app/screens/profile_screen.dart';
-import 'package:playveuw_app/screens/select_slot_screen.dart';
-import 'package:playveuw_app/screens/select_sport_screen.dart';
 import 'package:playveuw_app/screens/splash_screen.dart';
-import 'package:playveuw_app/screens/venue_details_screen.dart';
-import 'package:playveuw_app/screens/venues_screen.dart';
 import 'package:playveuw_app/screens/admin/admin_home_screen.dart';
+import 'package:playveuw_app/screens/admin/admin_plans_list_screen.dart';
+import 'package:playveuw_app/screens/admin/admin_plans_screen.dart';
+import 'package:playveuw_app/screens/admin/admin_player_list_screen.dart';
+import 'package:playveuw_app/screens/admin/admin_revenue_screen.dart';
+import 'package:playveuw_app/screens/admin/admin_settings_screen.dart';
+import 'package:playveuw_app/screens/player/booking_confirmation_screen.dart';
+import 'package:playveuw_app/screens/player/booking_details_screen.dart';
+import 'package:playveuw_app/screens/player/booking_history_screen.dart';
+import 'package:playveuw_app/screens/player/create_match_screen.dart';
+import 'package:playveuw_app/screens/player/create_tournament_screen.dart';
+import 'package:playveuw_app/screens/player/credit_success_screen.dart';
+import 'package:playveuw_app/screens/player/equipment_detail_screen.dart';
+import 'package:playveuw_app/screens/player/equipment_history_screen.dart';
+import 'package:playveuw_app/screens/player/equipment_screen.dart';
+import 'package:playveuw_app/screens/player/home_screen.dart';
+import 'package:playveuw_app/screens/player/match_registration_screen.dart';
+import 'package:playveuw_app/screens/player/memberships_screen.dart';
+import 'package:playveuw_app/screens/player/my_game_history_screen.dart';
+import 'package:playveuw_app/screens/player/play_screen.dart';
+import 'package:playveuw_app/screens/player/profile_screen.dart';
+import 'package:playveuw_app/screens/player/select_slot_screen.dart';
+import 'package:playveuw_app/screens/player/select_sport_screen.dart';
+import 'package:playveuw_app/screens/player/venue_details_screen.dart';
+import 'package:playveuw_app/screens/player/venues_screen.dart';
 import 'package:playveuw_app/state/app_booking_state.dart';
 import 'package:playveuw_app/state/app_catalogue_state.dart';
 import 'package:playveuw_app/state/app_facility_state.dart';
@@ -1275,12 +1280,15 @@ void main() {
     await tester.pump();
 
     expect(find.byType(AdminHomeScreen), findsOneWidget);
-    expect(find.text('Plans'), findsWidgets);
-    expect(find.text('PlayVue Plus'), findsOneWidget);
-    expect(find.text('Published'), findsWidgets);
+    expect(find.text('Good Morning, Admin 👋'), findsOneWidget);
+    expect(find.text('₹24,500'), findsOneWidget);
   });
 
   testWidgets('admin can publish a plan and player can subscribe', (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
     final weekend = AppMembershipState.plans.value
         .firstWhere((p) => p.id == 'plan_weekend');
     weekend.published = true;
@@ -1316,7 +1324,7 @@ void main() {
   testWidgets('admin can override booking status and refund credits', (tester) async {
     AppCreditsState.current = 20;
     await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
-    await tester.tap(find.text('Bookings'));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Bookings'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Smash Arena').first);
@@ -1331,7 +1339,8 @@ void main() {
     expect(AppCreditsState.current, 70);
   });
 
-  testWidgets('admin can override rental status and restock', (tester) async {
+  testWidgets('admin can mark rental as Overdue or Damaged from Rental Record bottom sheet', (tester) async {
+    AppRentalState.reset();
     await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
     await tester.tap(find.text('Catalogue'));
     await tester.pumpAndSettle();
@@ -1341,16 +1350,34 @@ void main() {
     expect(find.text('Yonex Astrox Racket'), findsWidgets);
     expect(find.textContaining('due 04 Sep 2026'), findsWidgets);
 
+    // Tap rental card -> Rental Record bottom sheet
     await tester.tap(find.text('Yonex Astrox Racket').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ListTile, 'Returned'));
+
+    expect(find.text('Rental Record'), findsOneWidget);
+    expect(find.text('Overdue'), findsOneWidget);
+    expect(find.text('Damage'), findsOneWidget);
+    expect(find.text('Update rental'), findsNothing);
+
+    // Tap Overdue
+    await tester.tap(find.text('Overdue'));
     await tester.pumpAndSettle();
 
     expect(
       AppRentalState.rentals.value.firstWhere((r) => r.id == 'r1').status,
-      'Returned',
+      'Overdue',
     );
-    expect(AppCatalogueState.byId('eq1')!.stockCount, 9);
+
+    // Tap rental card again -> mark as Damaged
+    await tester.tap(find.text('Yonex Astrox Racket').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Damage'));
+    await tester.pumpAndSettle();
+
+    expect(
+      AppRentalState.rentals.value.firstWhere((r) => r.id == 'r1').status,
+      'Damaged',
+    );
   });
 
   testWidgets('admin catalogue includes shoes and player can filter', (tester) async {
@@ -1379,6 +1406,735 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('₹450 / 45 Credits'), findsOneWidget);
+  });
+
+  testWidgets('AdminDrawer renders header and only 5 menu items (Home, Plans, Players, Revenue, Logout) and navigates correctly', (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // Verify AppBar Menu button exists
+    expect(find.byTooltip('Menu'), findsOneWidget);
+
+    // Open Drawer
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+
+    // Verify Admin Header
+    expect(find.text('PlayVue Admin'), findsOneWidget);
+    expect(find.text('admin@example.com'), findsOneWidget);
+    expect(find.text('A'), findsWidgets);
+
+    // Verify only the 5 menu options are present in the drawer
+    expect(find.descendant(of: find.byType(Drawer), matching: find.text('Home')), findsOneWidget);
+    expect(find.descendant(of: find.byType(Drawer), matching: find.text('Plans')), findsOneWidget);
+    expect(find.descendant(of: find.byType(Drawer), matching: find.text('Players')), findsOneWidget);
+    expect(find.descendant(of: find.byType(Drawer), matching: find.text('Revenue')), findsOneWidget);
+    expect(find.descendant(of: find.byType(Drawer), matching: find.text('Logout')), findsOneWidget);
+
+    // Verify removed drawer options are NOT present
+    expect(find.text('Settings'), findsNothing);
+
+    // 1. Navigate to Plans via Drawer
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('Plans')));
+    await tester.pumpAndSettle();
+
+    // Verify AdminPlansListScreen opened with 5 plans
+    expect(find.byType(AdminPlansListScreen), findsOneWidget);
+    expect(find.text('Basic Plan'), findsOneWidget);
+    expect(find.text('Premium Plan'), findsOneWidget);
+    expect(find.text('Pro Plan'), findsOneWidget);
+    expect(find.text('Elite Plan'), findsOneWidget);
+    expect(find.text('Ultimate Plan'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // 2. Navigate to Players via Drawer
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('Players')));
+    await tester.pumpAndSettle();
+
+    // Verify AdminPlayerListScreen opened
+    expect(find.byType(AdminPlayerListScreen), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // 3. Navigate to Revenue via Drawer
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('Revenue')));
+    await tester.pumpAndSettle();
+
+    // Verify AdminRevenueScreen opened
+    expect(find.byType(AdminRevenueScreen), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // 4. Navigate to Home via Drawer
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('Home')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Good Morning, Admin 👋'), findsOneWidget);
+
+    // 5. Test Logout flow with confirmation dialog
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('Logout')));
+    await tester.pumpAndSettle();
+
+    // Verify confirmation dialog
+    expect(find.text('Logout?'), findsOneWidget);
+    expect(find.text('Are you sure you want to logout?'), findsOneWidget);
+
+    // Cancel dialog
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Logout?'), findsNothing);
+
+    // Tap Logout again and confirm
+    await tester.tap(find.byTooltip('Menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text('Logout')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Logout'));
+    await tester.pumpAndSettle();
+
+    // Verify navigated to LoginScreen and session reset
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(AppSession.phone, '');
+    expect(AppSession.isAdmin, isFalse);
+  });
+
+  testWidgets('Admin Home displays AppBar unchanged and renders complete redesigned dashboard content', (tester) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // 1. Verify AppBar is completely unchanged
+    expect(find.text('Add Plan'), findsOneWidget);
+    final addPlanImages = find.descendant(
+      of: find.widgetWithText(FilledButton, 'Add Plan'),
+      matching: find.byType(Image),
+    );
+    expect(addPlanImages, findsOneWidget);
+    expect(find.byTooltip('Notifications'), findsOneWidget);
+    expect(find.byTooltip('Menu'), findsOneWidget);
+
+    // 2. Verify Admin Home Header
+    expect(find.text('Good Morning, Admin 👋'), findsOneWidget);
+
+    // 3. Verify Unified KPI Dashboard Card (2x2 layout)
+    expect(find.text("Today's Revenue"), findsOneWidget);
+    expect(find.text('₹24,500'), findsOneWidget);
+    expect(find.text("Today's Bookings"), findsOneWidget);
+    expect(find.text('42'), findsOneWidget);
+    expect(find.text('Players'), findsWidgets);
+    expect(find.text('128'), findsOneWidget);
+    expect(find.text('Courts'), findsOneWidget);
+    expect(find.text('8 / 12'), findsOneWidget);
+
+    // 4. Verify Quick Actions is completely removed
+    expect(find.text('QUICK ACTIONS'), findsNothing);
+    expect(find.text('+ Venue'), findsNothing);
+    expect(find.text('+ Court'), findsNothing);
+    expect(find.text('+ Item'), findsNothing);
+    expect(find.text('+ Offer'), findsNothing);
+    expect(find.text('+ Notice'), findsNothing);
+
+    // 5. Verify Plans (clean cards without View All, plan name as regular heading, price, credits, duration)
+    expect(find.text('PLANS'), findsOneWidget);
+    expect(find.text('Basic Plan'), findsOneWidget);
+    expect(find.text('Premium Plan'), findsOneWidget);
+    expect(find.text('₹499 / 30 Days'), findsWidgets);
+    expect(find.text('50 Credits'), findsOneWidget);
+    expect(find.text('Duration: 30 Days'), findsWidgets);
+
+    // 6. Verify Today's Bookings is removed completely
+    expect(find.text("TODAY'S BOOKINGS"), findsNothing);
+    expect(find.text('Badminton Court 1'), findsNothing);
+
+    // 7. Verify Revenue Overview with View Detail action
+    expect(find.text('REVENUE OVERVIEW'), findsOneWidget);
+    expect(find.text('View Detail'), findsOneWidget);
+    expect(find.text('Venue Booking'), findsOneWidget);
+    expect(find.text('₹1,20,000'), findsOneWidget);
+    expect(find.text('Membership'), findsOneWidget);
+    expect(find.text('₹40,000'), findsOneWidget);
+    expect(find.text('Equipment Rental'), findsOneWidget);
+    expect(find.text('₹14,500'), findsOneWidget);
+
+    // 8. Verify Court Utilisation
+    expect(find.text('COURT UTILISATION'), findsOneWidget);
+    expect(find.text('Badminton'), findsOneWidget);
+    expect(find.text('90%'), findsOneWidget);
+    expect(find.text('Football'), findsOneWidget);
+    expect(find.text('70%'), findsOneWidget);
+    expect(find.text('Cricket'), findsOneWidget);
+    expect(find.text('80%'), findsOneWidget);
+
+    // 9. Verify Equipment Summary
+    expect(find.text('EQUIPMENT'), findsOneWidget);
+    expect(find.text('156'), findsOneWidget);
+    expect(find.text('Total'), findsOneWidget);
+    expect(find.text('121'), findsOneWidget);
+    expect(find.text('Available'), findsOneWidget);
+    expect(find.text('28'), findsOneWidget);
+    expect(find.text('Rented'), findsOneWidget);
+    expect(find.text('7'), findsOneWidget);
+    expect(find.text('Damaged'), findsOneWidget);
+
+    // 10. Verify Attention Required
+    expect(find.text('ATTENTION REQUIRED'), findsOneWidget);
+    expect(find.text('3 Overdue Rentals'), findsOneWidget);
+    expect(find.text('2 Damaged Items'), findsOneWidget);
+    expect(find.text('4 Pending Bookings'), findsOneWidget);
+
+    // 11. Verify Recent Players
+    expect(find.text('RECENT PLAYERS'), findsOneWidget);
+    expect(find.text('Rahul Kumar'), findsOneWidget);
+    expect(find.text('Arun Kumar'), findsOneWidget);
+    expect(find.text('Vijay Kumar'), findsOneWidget);
+
+    // 12. Test Revenue Overview -> View Detail navigates to AdminRevenueScreen
+    await tester.tap(find.text('View Detail'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Revenue Breakdown'), findsOneWidget);
+    expect(find.text('September 2026'), findsOneWidget);
+    expect(find.text('Venue Revenue'), findsWidgets);
+    expect(find.text('Membership Revenue'), findsWidgets);
+    expect(find.text('Rental Revenue'), findsWidgets);
+    expect(find.text('₹1,75,000'), findsOneWidget);
+    expect(find.text('August 2026'), findsOneWidget);
+
+    // Pop back from Revenue Screen
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // 13. Test Recent Players -> View All navigates to AdminPlayerListScreen
+    await tester.tap(find.text('View All').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Registered Players'), findsOneWidget);
+    expect(find.text('Rahul Kumar'), findsOneWidget);
+    expect(find.text('Logesh K'), findsOneWidget);
+    expect(find.text('Priya Sharma'), findsOneWidget);
+
+    // Test player search
+    await tester.enterText(find.byType(TextField), 'Logesh');
+    await tester.pumpAndSettle();
+    expect(find.text('Logesh K'), findsOneWidget);
+    expect(find.text('Rahul Kumar'), findsNothing);
+
+    // Pop back from Player List Screen
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // 14. Test Notification icon opens AdminNotificationScreen
+    await tester.tap(find.byTooltip('Notifications'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notifications'), findsOneWidget);
+    expect(find.text('New Booking'), findsOneWidget);
+    expect(find.text('A new venue booking was created for Smash Arena.'), findsOneWidget);
+
+    // Pop back to AdminHomeScreen
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Good Morning, Admin 👋'), findsOneWidget);
+    expect(find.text('Add Plan'), findsOneWidget);
+  });
+
+  testWidgets('Admin Facilities Screen displays Add Facility button and allows adding a new facility with Photo Upload', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // Switch to Facilities Tab
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Facilities'));
+    await tester.pumpAndSettle();
+
+    // Verify AppBar shows Add Facility action
+    expect(find.text('Add Facility'), findsOneWidget);
+    expect(find.text('PlayVue Sports Academy'), findsOneWidget);
+
+    // Tap Add Facility
+    await tester.tap(find.text('Add Facility'));
+    await tester.pumpAndSettle();
+
+    // Verify Add Facility Screen and Photo Upload Area
+    expect(find.text('Add Facility'), findsWidgets);
+    expect(find.text('FACILITY DETAILS'), findsOneWidget);
+    expect(find.text('SUPPORTED SPORTS'), findsOneWidget);
+    expect(find.text('RENTAL & BOOKING SETTINGS'), findsOneWidget);
+    expect(find.text('Facility Photo'), findsOneWidget);
+    expect(find.text('Upload Photo'), findsOneWidget);
+    expect(find.text('JPG, PNG supported'), findsOneWidget);
+
+    // Test Photo Upload picker sheet
+    await tester.tap(find.text('Upload Photo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Select Facility Photo'), findsOneWidget);
+    expect(find.text('Choose from Gallery'), findsOneWidget);
+
+    await tester.tap(find.text('Choose from Gallery'));
+    await tester.pumpAndSettle();
+
+    // Verify Photo Preview and Change Photo button appear
+    expect(find.text('Change Photo'), findsOneWidget);
+
+    // Attempt to add without name (validation check)
+    await tester.tap(find.widgetWithText(FilledButton, 'Add Facility'));
+    await tester.pumpAndSettle();
+    expect(find.text('Please enter a facility name.'), findsOneWidget);
+
+    // Enter name and location
+    final textFields = find.byType(TextField);
+    await tester.enterText(textFields.at(0), 'Skyline Badminton Hub'); // Name
+    await tester.enterText(textFields.at(3), 'Koramangala, Bengaluru'); // Location
+    await tester.enterText(textFields.at(4), 'State-of-the-art wooden courts.'); // Description
+
+    // Tap Add Facility button
+    await tester.tap(find.widgetWithText(FilledButton, 'Add Facility'));
+    await tester.pumpAndSettle();
+
+    // Verify back on Facilities Screen and new facility is immediately visible
+    expect(find.text('Skyline Badminton Hub'), findsOneWidget);
+    expect(find.text('PlayVue Sports Academy'), findsOneWidget);
+  });
+
+  testWidgets('Admin Catalogue filters: category and sport work together and display Unique Item IDs', (tester) async {
+    AppCatalogueState.reset();
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // Navigate to Catalogue tab (index 3)
+    await tester.tap(find.text('Catalogue'));
+    await tester.pumpAndSettle();
+
+    // Verify Filters exist
+    expect(find.text('CATEGORIES'), findsOneWidget);
+    expect(find.text('SPORTS'), findsOneWidget);
+    expect(find.text('Equipment'), findsWidgets);
+    expect(find.text('Gear'), findsOneWidget);
+    expect(find.text('Shoes'), findsOneWidget);
+    expect(find.text('Badminton'), findsWidgets);
+    expect(find.text('Football'), findsWidgets);
+    expect(find.text('Cricket'), findsWidgets);
+    expect(find.text('TT'), findsOneWidget);
+    expect(find.text('Carrom'), findsOneWidget);
+
+    // Verify Unique Item ID on cards
+    expect(find.text('Item ID: RACKET-BDM-001'), findsOneWidget);
+    expect(find.text('Item ID: BALL-FB-001'), findsOneWidget);
+
+    // Filter by Shoes
+    await tester.tap(find.text('Shoes').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yonex Power Cushion Shoes'), findsOneWidget);
+    expect(find.text('Nivia Football Studs'), findsOneWidget);
+    expect(find.text('Yonex Astrox Racket'), findsNothing);
+
+    // Filter by Shoes + Football -> only Nivia Football Studs
+    await tester.tap(find.text('Football').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nivia Football Studs'), findsOneWidget);
+    expect(find.text('Yonex Power Cushion Shoes'), findsNothing);
+
+    // Reset filters to All + All
+    await tester.tap(find.text('All').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('All').at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yonex Astrox Racket'), findsOneWidget);
+    expect(find.text('Football Size 5'), findsOneWidget);
+  });
+
+  testWidgets('Admin Return flow: checks unique ID, handles invalid, already returned, and successful return with availability update', (tester) async {
+    AppCatalogueState.reset();
+    AppRentalState.reset();
+
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // Navigate to Catalogue tab
+    await tester.tap(find.text('Catalogue'));
+    await tester.pumpAndSettle();
+
+    // Switch to Rentals sub-tab
+    await tester.tap(find.text('Rentals'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('RETURN EQUIPMENT'), findsOneWidget);
+    expect(find.text('Check Item'), findsOneWidget);
+
+    // 1. Test Invalid ID
+    await tester.enterText(find.byType(TextField).first, 'BAT-BDM-999');
+    await tester.tap(find.text('Check Item'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Item Not Found'), findsOneWidget);
+    expect(find.text('No catalogue item was found with ID:\nBAT-BDM-999'), findsOneWidget);
+    await tester.tap(find.text('Okay'));
+    await tester.pumpAndSettle();
+
+    // 2. Test Already Returned ID (KIT-CRI-001 is seeded as Returned)
+    await tester.enterText(find.byType(TextField).first, 'KIT-CRI-001');
+    await tester.tap(find.text('Check Item'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Item Already Returned'), findsOneWidget);
+    expect(find.text('KIT-CRI-001 is not currently rented.'), findsOneWidget);
+    await tester.tap(find.text('Okay'));
+    await tester.pumpAndSettle();
+
+    // 3. Test Actively Rented ID (RACKET-BDM-001 is seeded as Rented)
+    final initialStock = AppCatalogueState.byId('eq1')!.stockCount;
+    await tester.enterText(find.byType(TextField).first, 'RACKET-BDM-001');
+    await tester.tap(find.text('Check Item'));
+    await tester.pumpAndSettle();
+
+    // Bottom sheet appears with rental info
+    expect(find.text('Item Found'), findsOneWidget);
+    expect(find.text('Item: Yonex Astrox Racket'), findsOneWidget);
+    expect(find.text('Item ID: RACKET-BDM-001'), findsWidgets);
+    expect(find.text('Overdue'), findsOneWidget);
+    expect(find.text('Damage'), findsOneWidget);
+    expect(find.text('Mark as Returned'), findsOneWidget);
+
+    // Tap Mark as Returned -> Confirmation Dialog
+    await tester.tap(find.text('Mark as Returned'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Return Equipment?'), findsOneWidget);
+    expect(find.textContaining('Are you sure you want to mark RACKET-BDM-001 as returned?'), findsOneWidget);
+
+    // Tap Returned in dialog
+    await tester.tap(find.widgetWithText(FilledButton, 'Returned'));
+    await tester.pumpAndSettle();
+
+    // Verify status updated and stock increased
+    final updatedRental = AppRentalState.findByUniqueId('RACKET-BDM-001');
+    expect(updatedRental?.status, 'Returned');
+    expect(AppCatalogueState.byId('eq1')!.stockCount, initialStock + 1);
+  });
+
+  testWidgets('Admin Bookings Screen renders header, date & name filters, summary count, full day, and empty state', (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    AppBookingState.reset();
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // Switch to Bookings tab (index 2)
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Bookings'));
+    await tester.pumpAndSettle();
+
+    // 1. Verify AppBar title is Bookings and body subtitle is removed
+    expect(find.widgetWithText(AppBar, 'Bookings'), findsOneWidget);
+    expect(find.text('Manage and track all facility bookings'), findsNothing);
+
+    // 2. Verify Filter section
+    expect(find.text('Date'), findsOneWidget);
+    expect(find.text('Select Date'), findsOneWidget);
+    expect(find.text('Player Name'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('5 Bookings'), findsOneWidget);
+
+    // 3. Verify cards content & Full Day
+    expect(find.text('Rahul Kumar'), findsWidgets);
+    expect(find.text('Arun Kumar'), findsOneWidget);
+    expect(find.text('Duration: Full Day'), findsOneWidget);
+    expect(find.text('06:00 AM - 10:00 PM'), findsOneWidget);
+
+    // 4. Test Player Name filter
+    await tester.enterText(find.byType(TextField).first, 'Rahul');
+    await tester.pumpAndSettle();
+
+    expect(find.text('2 Bookings Found'), findsOneWidget);
+    expect(find.text('Rahul Kumar'), findsWidgets);
+    expect(find.text('Arun Kumar'), findsNothing);
+    expect(find.text('Clear Filters'), findsOneWidget);
+
+    // 5. Test Clear Filters
+    await tester.tap(find.text('Clear Filters'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5 Bookings'), findsOneWidget);
+    expect(find.text('Arun Kumar'), findsOneWidget);
+
+    // 6. Test No Bookings Found empty state
+    await tester.enterText(find.byType(TextField).first, 'NonExistentPlayer');
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 Bookings Found'), findsOneWidget);
+    expect(find.text('No Bookings Found'), findsOneWidget);
+    expect(find.text('No bookings match the selected filters.'), findsOneWidget);
+
+    // Clear filters from empty state
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Clear Filters'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5 Bookings'), findsOneWidget);
+    expect(find.text('Rahul Kumar'), findsWidgets);
+  });
+
+  testWidgets('Admin Profile Screen matches Player Profile layout with admin-specific options and navigation', (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(const MaterialApp(home: AdminHomeScreen()));
+    await tester.pumpAndSettle();
+
+    // Switch to Profile tab (index 4)
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Profile'));
+    await tester.pumpAndSettle();
+
+    // 1. Verify Header layout (Avatar, Name, Role badge, Subtitle)
+    expect(find.text('A'), findsWidgets);
+    expect(find.text('PlayVue Admin'), findsOneWidget);
+    expect(find.text('Admin'), findsWidgets);
+    expect(find.text('admin@playveuw.com  ·  Bengaluru, Karnataka'), findsOneWidget);
+
+    // 2. Verify Stats Card
+    expect(find.text('8'), findsOneWidget);
+    expect(find.text('Facilities'), findsWidgets);
+    expect(find.text('42'), findsOneWidget);
+    expect(find.text('128'), findsOneWidget);
+    expect(find.text('Players'), findsWidgets);
+
+    // 3. Verify Admin Sections & Options
+    expect(find.text('ACCOUNT'), findsOneWidget);
+    expect(find.text('Profile Information'), findsOneWidget);
+
+    expect(find.text('MANAGEMENT'), findsNothing);
+
+    expect(find.text('PREFERENCES'), findsOneWidget);
+    expect(find.text('Notifications'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
+
+    expect(find.text('Logout'), findsNothing);
+
+    // 4. Verify No Player-specific options
+    expect(find.text('My Games'), findsNothing);
+    expect(find.text('Credits available'), findsNothing);
+    expect(find.text('Sports you play'), findsNothing);
+
+    // 5. Test Profile Information bottom sheet
+    await tester.tap(find.text('Profile Information'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Administrator'), findsOneWidget);
+    expect(find.text('Location'), findsOneWidget);
+    Navigator.of(tester.element(find.text('Administrator'))).pop();
+    await tester.pumpAndSettle();
+
+    // 6. Test Settings navigation
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AdminSettingsScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('admin and player equipment data, unique ID, and status are synchronized across catalogue, rentals, and My Equipments', (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    AppCatalogueState.reset();
+    AppRentalState.reset();
+
+    // 1. Admin Catalogue displays the equipment with its unique ID
+    final racket = AppCatalogueState.byId('eq1')!;
+    expect(racket.name, 'Yonex Astrox Racket');
+    expect(racket.sport, 'Badminton');
+    expect(racket.physicalIds.contains('RACKET-BDM-001'), isTrue);
+    expect(racket.physicalIds.contains('RACKET-BDM-002'), isTrue);
+
+    // 2. Player opens My Equipments and sees the same RACKET-BDM-001 with matching data
+    await tester.pumpWidget(
+      const MaterialApp(home: EquipmentHistoryScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yonex Astrox Racket'), findsOneWidget);
+    expect(find.text('Badminton • Rackets & Bats'), findsOneWidget);
+    expect(find.text('ID: RACKET-BDM-001'), findsWidgets);
+    expect(find.text('Status: Rented'), findsWidgets);
+
+    // 3. Admin overrides status to Overdue -> Player My Equipments reflects Overdue
+    AppRentalState.overrideStatus('r1', 'Overdue');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Status: Overdue'), findsOneWidget);
+
+    // 4. Admin overrides status to Damaged -> Player My Equipments reflects Damaged
+    AppRentalState.overrideStatus('r1', 'Damaged');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Status: Damaged'), findsOneWidget);
+
+    // 5. Admin marks RACKET-BDM-001 as Returned -> Player My Equipments reflects Returned
+    AppRentalState.returnByUniqueId('RACKET-BDM-001');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Status: Returned'), findsWidgets);
+    expect(AppRentalState.isPhysicalIdRented('RACKET-BDM-001'), isFalse);
+
+    // 6. Next rental of Yonex Astrox Racket gets the exact same RACKET-BDM-001 physical ID without regenerating
+    final reRented = AppRentalState.rent(
+      racket,
+      playerName: 'Arun Kumar',
+    );
+    expect(reRented.uniqueItemId, 'RACKET-BDM-001');
+    expect(reRented.playerName, 'Arun Kumar');
+    expect(reRented.name, 'Yonex Astrox Racket');
+  });
+
+  testWidgets('Player Equipment Details Screen matches shared equipment record, displays Unique ID, and syncs status with Admin and My Equipments', (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    AppCatalogueState.reset();
+    AppRentalState.reset();
+
+    // 1. Open My Equipments
+    await tester.pumpWidget(
+      const MaterialApp(home: EquipmentHistoryScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    // 2. Tap on Yonex Astrox Racket card to open EquipmentDetailScreen
+    await tester.tap(find.text('Yonex Astrox Racket'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EquipmentDetailScreen), findsOneWidget);
+
+    // 3. Verify fields match shared equipment record
+    expect(find.text('Yonex Astrox Racket'), findsOneWidget);
+    expect(find.text('Rackets & Bats'), findsWidgets);
+    expect(find.text('Badminton'), findsOneWidget);
+    expect(find.text('Unique ID: RACKET-BDM-001'), findsOneWidget);
+    expect(find.text('Rental Date'), findsOneWidget);
+    expect(find.text('02 Sep 2026'), findsOneWidget);
+    expect(find.text('Rental Duration'), findsOneWidget);
+    expect(find.text('2 Days'), findsOneWidget);
+    expect(find.text('Due Date'), findsOneWidget);
+    expect(find.text('04 Sep 2026'), findsOneWidget);
+    expect(find.text('Rental Price'), findsOneWidget);
+    expect(find.text('₹200'), findsOneWidget);
+    expect(find.text('Status: Rented'), findsWidgets);
+    expect(find.text('Return Equipment'), findsOneWidget);
+
+    // 4. Admin marks as Overdue -> Equipment Details updates dynamically
+    AppRentalState.overrideStatus('r1', 'Overdue');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Status: Overdue'), findsWidgets);
+
+    // 5. Admin marks as Damaged -> Equipment Details updates dynamically
+    AppRentalState.overrideStatus('r1', 'Damaged');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Status: Damaged'), findsWidgets);
+
+    // 6. Reset back to Rented and test Return flow from EquipmentDetailScreen
+    AppRentalState.overrideStatus('r1', 'Rented');
+    await tester.pumpAndSettle();
+    expect(find.text('Return Equipment'), findsOneWidget);
+
+    await tester.tap(find.text('Return Equipment'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Return Equipment?'), findsOneWidget);
+    expect(
+      find.text('Are you sure you want to return RACKET-BDM-001 (Yonex Astrox Racket)?'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Return'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Status: Returned'), findsWidgets);
+    expect(AppRentalState.findByUniqueId('RACKET-BDM-001')?.status, 'Returned');
+  });
+
+  testWidgets('AdminPlanEditorScreen keeps only Discount and removes subsidy, PlayVue/Venue, and credit mapping options', (tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      const MaterialApp(home: AdminPlanEditorScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. Verify Plan fields
+    expect(find.text('New plan'), findsOneWidget);
+    expect(find.text('PLAN'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Name'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Price ₹'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Credits'), findsOneWidget);
+
+    // 2. Verify Discount field is present
+    expect(find.text('DISCOUNT'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Discount %'), findsOneWidget);
+
+    // 3. Verify Subsidy and PlayVue / Venue options are completely removed
+    expect(find.text('Subsidy'), findsNothing);
+    expect(find.text('Subsidy cr'), findsNothing);
+    expect(find.text('PlayVue'), findsNothing);
+    expect(find.text('Venue'), findsNothing);
+    expect(find.text('Discount & subsidy'), findsNothing);
+
+    // 4. Verify Credit mapping options are completely removed
+    expect(find.text('Credit mapping'), findsNothing);
+    expect(find.text('Add mapping'), findsNothing);
+    expect(find.text('Uses facility rates if empty.'), findsNothing);
+
+    // 5. Fill in plan details and save
+    await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Pro Annual Plan');
+    await tester.enterText(find.widgetWithText(TextField, 'Price ₹'), '1999');
+    await tester.enterText(find.widgetWithText(TextField, 'Credits'), '500');
+    await tester.enterText(find.widgetWithText(TextField, 'Discount %'), '15');
+    await tester.tap(find.text('Yearly'));
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Save plan'));
+    await tester.pumpAndSettle();
+
+    final saved = AppMembershipState.plans.value.firstWhere(
+      (p) => p.name == 'Pro Annual Plan',
+    );
+    expect(saved.priceInr, 1999);
+    expect(saved.creditsGranted, 500);
+    expect(saved.discountPercent, 15);
+    expect(saved.duration, 'Yearly');
+    expect(saved.published, isTrue);
+    expect(saved.subsidyCredits, 0);
   });
 }
 

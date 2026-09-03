@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
 import 'create_match_screen.dart';
 import 'create_tournament_screen.dart';
 

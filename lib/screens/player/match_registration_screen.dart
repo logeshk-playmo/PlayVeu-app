@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+
 
 class MatchRegistrationScreen extends StatefulWidget {
   const MatchRegistrationScreen({

@@ -35,6 +35,7 @@ class EquipmentItem {
     this.type = CatalogueType.equipment,
     this.published = true,
     this.stockCount = 1,
+    this.physicalIds = const [],
   });
 
   final String id;
@@ -54,6 +55,10 @@ class EquipmentItem {
   final CatalogueType type;
   final bool published;
   final int stockCount;
+  final List<String> physicalIds;
+
+  String get primaryUniqueId =>
+      physicalIds.isNotEmpty ? physicalIds.first : '$id-001';
 
   EquipmentItem copyWith({
     String? id,
@@ -73,6 +78,7 @@ class EquipmentItem {
     CatalogueType? type,
     bool? published,
     int? stockCount,
+    List<String>? physicalIds,
   }) {
     return EquipmentItem(
       id: id ?? this.id,
@@ -92,6 +98,7 @@ class EquipmentItem {
       type: type ?? this.type,
       published: published ?? this.published,
       stockCount: stockCount ?? this.stockCount,
+      physicalIds: physicalIds ?? this.physicalIds,
     );
   }
 }
@@ -112,6 +119,24 @@ abstract final class AppCatalogueState {
       if (item.id == id) return item;
     }
     return null;
+  }
+
+  static EquipmentItem? findItemByPhysicalId(String physicalId) {
+    final query = physicalId.trim().toUpperCase();
+    for (final item in items.value) {
+      if (item.physicalIds.any((id) => id.toUpperCase() == query)) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  static bool isValidPhysicalId(String physicalId) {
+    return findItemByPhysicalId(physicalId) != null;
+  }
+
+  static List<String> allPhysicalIds() {
+    return items.value.expand((item) => item.physicalIds).toList();
   }
 
   static void adjustStock(String id, int delta) {
@@ -165,6 +190,16 @@ abstract final class AppCatalogueState {
       reviews: 38,
       type: CatalogueType.equipment,
       stockCount: 8,
+      physicalIds: [
+        'RACKET-BDM-001',
+        'RACKET-BDM-002',
+        'RACKET-BDM-003',
+        'RACKET-BDM-004',
+        'RACKET-BDM-005',
+        'RACKET-BDM-006',
+        'RACKET-BDM-007',
+        'RACKET-BDM-008',
+      ],
     ),
     EquipmentItem(
       id: 'eq2',
@@ -190,6 +225,20 @@ abstract final class AppCatalogueState {
       reviews: 45,
       type: CatalogueType.equipment,
       stockCount: 12,
+      physicalIds: [
+        'BALL-FB-001',
+        'BALL-FB-002',
+        'BALL-FB-003',
+        'BALL-FB-004',
+        'BALL-FB-005',
+        'BALL-FB-006',
+        'BALL-FB-007',
+        'BALL-FB-008',
+        'BALL-FB-009',
+        'BALL-FB-010',
+        'BALL-FB-011',
+        'BALL-FB-012',
+      ],
     ),
     EquipmentItem(
       id: 'eq3',
@@ -215,6 +264,12 @@ abstract final class AppCatalogueState {
       reviews: 29,
       type: CatalogueType.gear,
       stockCount: 4,
+      physicalIds: [
+        'KIT-CRI-001',
+        'KIT-CRI-002',
+        'KIT-CRI-003',
+        'KIT-CRI-004',
+      ],
     ),
     EquipmentItem(
       id: 'eq4',
@@ -240,6 +295,14 @@ abstract final class AppCatalogueState {
       reviews: 32,
       type: CatalogueType.equipment,
       stockCount: 6,
+      physicalIds: [
+        'PAD-TT-001',
+        'PAD-TT-002',
+        'PAD-TT-003',
+        'PAD-TT-004',
+        'PAD-TT-005',
+        'PAD-TT-006',
+      ],
     ),
     EquipmentItem(
       id: 'eq5',
@@ -265,6 +328,18 @@ abstract final class AppCatalogueState {
       reviews: 21,
       type: CatalogueType.gear,
       stockCount: 10,
+      physicalIds: [
+        'SET-CHS-001',
+        'SET-CHS-002',
+        'SET-CHS-003',
+        'SET-CHS-004',
+        'SET-CHS-005',
+        'SET-CHS-006',
+        'SET-CHS-007',
+        'SET-CHS-008',
+        'SET-CHS-009',
+        'SET-CHS-010',
+      ],
     ),
     EquipmentItem(
       id: 'eq6',
@@ -290,6 +365,13 @@ abstract final class AppCatalogueState {
       reviews: 19,
       type: CatalogueType.gear,
       stockCount: 5,
+      physicalIds: [
+        'BRD-CAR-001',
+        'BRD-CAR-002',
+        'BRD-CAR-003',
+        'BRD-CAR-004',
+        'BRD-CAR-005',
+      ],
     ),
     EquipmentItem(
       id: 'eq7',
@@ -315,6 +397,22 @@ abstract final class AppCatalogueState {
       reviews: 16,
       type: CatalogueType.shoes,
       stockCount: 14,
+      physicalIds: [
+        'SHOE-BDM-001',
+        'SHOE-BDM-002',
+        'SHOE-BDM-003',
+        'SHOE-BDM-004',
+        'SHOE-BDM-005',
+        'SHOE-BDM-006',
+        'SHOE-BDM-007',
+        'SHOE-BDM-008',
+        'SHOE-BDM-009',
+        'SHOE-BDM-010',
+        'SHOE-BDM-011',
+        'SHOE-BDM-012',
+        'SHOE-BDM-013',
+        'SHOE-BDM-014',
+      ],
     ),
     EquipmentItem(
       id: 'eq8',
@@ -340,6 +438,18 @@ abstract final class AppCatalogueState {
       reviews: 11,
       type: CatalogueType.shoes,
       stockCount: 10,
+      physicalIds: [
+        'SHOE-FB-001',
+        'SHOE-FB-002',
+        'SHOE-FB-003',
+        'SHOE-FB-004',
+        'SHOE-FB-005',
+        'SHOE-FB-006',
+        'SHOE-FB-007',
+        'SHOE-FB-008',
+        'SHOE-FB-009',
+        'SHOE-FB-010',
+      ],
     ),
   ];
 }

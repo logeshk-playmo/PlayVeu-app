@@ -6,8 +6,10 @@ class EquipmentRentalRecord {
   const EquipmentRentalRecord({
     required this.id,
     required this.itemId,
+    required this.uniqueItemId,
     required this.name,
     required this.category,
+    this.sport = 'Badminton',
     required this.image,
     required this.rentedDate,
     required this.duration,
@@ -19,8 +21,10 @@ class EquipmentRentalRecord {
 
   final String id;
   final String itemId;
+  final String uniqueItemId;
   final String name;
   final String category;
+  final String sport;
   final String image;
   final String rentedDate;
   final String duration;
@@ -31,19 +35,28 @@ class EquipmentRentalRecord {
 
   bool get isActive => status == 'Rented' || status == 'Overdue';
 
-  EquipmentRentalRecord copyWith({String? status}) {
+  EquipmentRentalRecord copyWith({
+    String? status,
+    String? playerName,
+    String? rentedDate,
+    String? duration,
+    String? returnDate,
+    String? price,
+  }) {
     return EquipmentRentalRecord(
       id: id,
       itemId: itemId,
+      uniqueItemId: uniqueItemId,
       name: name,
       category: category,
+      sport: sport,
       image: image,
-      rentedDate: rentedDate,
-      duration: duration,
-      returnDate: returnDate,
-      price: price,
+      rentedDate: rentedDate ?? this.rentedDate,
+      duration: duration ?? this.duration,
+      returnDate: returnDate ?? this.returnDate,
+      price: price ?? this.price,
       status: status ?? this.status,
-      playerName: playerName,
+      playerName: playerName ?? this.playerName,
     );
   }
 }
@@ -56,50 +69,62 @@ abstract final class AppRentalState {
     EquipmentRentalRecord(
       id: 'r1',
       itemId: 'eq1',
+      uniqueItemId: 'RACKET-BDM-001',
       name: 'Yonex Astrox Racket',
-      category: 'Sports Equipment',
-      image: 'assets/sports/sport_badminton.png',
+      category: 'Rackets & Bats',
+      sport: 'Badminton',
+      image: 'https://images.unsplash.com/photo-1626225453014-a9ac938c647d?w=800&auto=format&fit=crop&q=60',
       rentedDate: '02 Sep 2026',
       duration: '2 Days',
       returnDate: '04 Sep 2026',
       price: '₹200',
       status: 'Rented',
+      playerName: 'Rahul Kumar',
     ),
     EquipmentRentalRecord(
       id: 'r2',
       itemId: 'eq2',
+      uniqueItemId: 'BALL-FB-001',
       name: 'Football Size 5',
-      category: 'Sports Equipment',
-      image: 'assets/sports/sport_football.png',
+      category: 'Balls & Inflatables',
+      sport: 'Football',
+      image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop&q=60',
       rentedDate: '01 Sep 2026',
       duration: '3 Days',
       returnDate: '04 Sep 2026',
       price: '₹150',
       status: 'Rented',
+      playerName: 'Arun Kumar',
     ),
     EquipmentRentalRecord(
       id: 'r3',
       itemId: 'eq3',
+      uniqueItemId: 'KIT-CRI-001',
       name: 'Cricket Kit',
-      category: 'Sports Equipment',
-      image: 'assets/sports/sport_box_cricket.png',
+      category: 'Full Protection Kits',
+      sport: 'Cricket',
+      image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800&auto=format&fit=crop&q=60',
       rentedDate: '25 Aug 2026',
       duration: '4 Days',
       returnDate: '29 Aug 2026',
       price: '₹450',
       status: 'Returned',
+      playerName: 'Rahul Kumar',
     ),
     EquipmentRentalRecord(
       id: 'r4',
       itemId: 'eq4',
+      uniqueItemId: 'PAD-TT-001',
       name: 'TT Paddle Set',
-      category: 'Sports Equipment',
-      image: 'assets/sports/sport_table_tennis.png',
+      category: 'Paddles & Table Gear',
+      sport: 'Table Tennis',
+      image: 'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=800&auto=format&fit=crop&q=60',
       rentedDate: '20 Aug 2026',
       duration: '1 Day',
       returnDate: '21 Aug 2026',
       price: '₹100',
       status: 'Returned',
+      playerName: 'Logesh',
     ),
   ];
 
@@ -107,7 +132,58 @@ abstract final class AppRentalState {
     rentals.value = List<EquipmentRentalRecord>.from(_seed);
   }
 
-  static void rent(EquipmentItem item, {String playerName = 'Logesh'}) {
+  static Set<String> get activeRentedPhysicalIds => rentals.value
+      .where((r) => r.isActive)
+      .map((r) => r.uniqueItemId.toUpperCase())
+      .toSet();
+
+  static bool isPhysicalIdRented(String uniqueId) {
+    return activeRentedPhysicalIds.contains(uniqueId.trim().toUpperCase());
+  }
+
+  static String assignPhysicalId(EquipmentItem item) {
+    final active = activeRentedPhysicalIds;
+    for (final id in item.physicalIds) {
+      if (!active.contains(id.toUpperCase())) {
+        return id;
+      }
+    }
+    return item.primaryUniqueId;
+  }
+
+  static EquipmentRentalRecord? findByUniqueId(String uniqueId) {
+    final query = uniqueId.trim().toUpperCase();
+    for (final rental in rentals.value) {
+      if (rental.uniqueItemId.toUpperCase() == query) {
+        return rental;
+      }
+    }
+    return null;
+  }
+
+  static EquipmentRentalRecord? findActiveByUniqueId(String uniqueId) {
+    final query = uniqueId.trim().toUpperCase();
+    for (final rental in rentals.value) {
+      if (rental.uniqueItemId.toUpperCase() == query && rental.isActive) {
+        return rental;
+      }
+    }
+    return null;
+  }
+
+  static List<EquipmentRentalRecord> rentalsForPlayer(String playerName) {
+    final normalized = playerName.trim().toLowerCase();
+    if (normalized.isEmpty) return rentals.value;
+    return rentals.value
+        .where((r) => r.playerName.toLowerCase().contains(normalized))
+        .toList();
+  }
+
+  static EquipmentRentalRecord rent(
+    EquipmentItem item, {
+    String playerName = 'Logesh',
+    String? specificPhysicalId,
+  }) {
     final now = DateTime.now();
     final isDay = item.price.toLowerCase().contains('day');
     final isSession = item.price.toLowerCase().contains('session');
@@ -119,27 +195,43 @@ abstract final class AppRentalState {
     final due = isDay ? now.add(const Duration(days: 1)) : now;
     final rupeePart = item.price.split(' / ').first;
 
+    final uniqueId = specificPhysicalId ?? assignPhysicalId(item);
+
     AppCatalogueState.adjustStock(item.id, -1);
+    final newRental = EquipmentRentalRecord(
+      id: 'r_${now.millisecondsSinceEpoch}',
+      itemId: item.id,
+      uniqueItemId: uniqueId,
+      name: item.name,
+      category: item.category,
+      sport: item.sport,
+      image: item.image,
+      rentedDate: _formatDate(now),
+      duration: duration,
+      returnDate: _formatDate(due),
+      price: rupeePart,
+      status: 'Rented',
+      playerName: playerName,
+    );
+
     rentals.value = [
-      EquipmentRentalRecord(
-        id: 'r_${now.millisecondsSinceEpoch}',
-        itemId: item.id,
-        name: item.name,
-        category: item.category,
-        image: item.image,
-        rentedDate: _formatDate(now),
-        duration: duration,
-        returnDate: _formatDate(due),
-        price: rupeePart,
-        status: 'Rented',
-        playerName: playerName,
-      ),
+      newRental,
       ...rentals.value,
     ];
+    return newRental;
   }
 
   static void markReturned(String id) {
     overrideStatus(id, 'Returned');
+  }
+
+  static bool returnByUniqueId(String uniqueId) {
+    final active = findActiveByUniqueId(uniqueId);
+    if (active != null) {
+      overrideStatus(active.id, 'Returned');
+      return true;
+    }
+    return false;
   }
 
   static void overrideStatus(String id, String status) {

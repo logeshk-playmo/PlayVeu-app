@@ -33,7 +33,17 @@ class _AdminCatalogueItemsPane extends StatefulWidget {
 }
 
 class _AdminCatalogueItemsPaneState extends State<_AdminCatalogueItemsPane> {
-  CatalogueType? _filter;
+  CatalogueType? _categoryFilter;
+  String? _sportFilter;
+
+  static const _sports = [
+    'Badminton',
+    'Football',
+    'Cricket',
+    'TT',
+    'Carrom',
+    'Chess',
+  ];
 
   @override
   void initState() {
@@ -51,30 +61,68 @@ class _AdminCatalogueItemsPaneState extends State<_AdminCatalogueItemsPane> {
     if (mounted) setState(() {});
   }
 
+  bool _matchesSport(EquipmentItem item, String sport) {
+    if (sport == 'TT') {
+      return item.sport.toLowerCase() == 'table tennis' ||
+          item.sport.toLowerCase() == 'tt';
+    }
+    return item.sport.toLowerCase() == sport.toLowerCase();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final items = AppCatalogueState.items.value
-        .where((item) => _filter == null || item.type == _filter)
-        .toList();
+    final items = AppCatalogueState.items.value.where((item) {
+      final matchesCategory =
+          _categoryFilter == null || item.type == _categoryFilter;
+      final matchesSport =
+          _sportFilter == null || _matchesSport(item, _sportFilter!);
+      return matchesCategory && matchesSport;
+    }).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
+        const AdminSectionLabel('Categories'),
+        const SizedBox(height: 8),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
               AdminPill(
                 label: 'All',
-                selected: _filter == null,
-                onTap: () => setState(() => _filter = null),
+                selected: _categoryFilter == null,
+                onTap: () => setState(() => _categoryFilter = null),
               ),
               const SizedBox(width: 8),
               for (final type in CatalogueType.values) ...[
                 AdminPill(
                   label: type.label,
-                  selected: _filter == type,
-                  onTap: () => setState(() => _filter = type),
+                  selected: _categoryFilter == type,
+                  onTap: () => setState(() => _categoryFilter = type),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        const AdminSectionLabel('Sports'),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              AdminPill(
+                label: 'All',
+                selected: _sportFilter == null,
+                onTap: () => setState(() => _sportFilter = null),
+              ),
+              const SizedBox(width: 8),
+              for (final sport in _sports) ...[
+                AdminPill(
+                  label: sport,
+                  selected: _sportFilter == sport,
+                  onTap: () => setState(() => _sportFilter = sport),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -82,61 +130,112 @@ class _AdminCatalogueItemsPaneState extends State<_AdminCatalogueItemsPane> {
           ),
         ),
         const SizedBox(height: 16),
-        for (final item in items) ...[
-          AdminCard(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => AdminCatalogueEditorScreen(item: item),
+        if (items.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                'No items found matching filters',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
-              );
-            },
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: AppIcon(item.icon, color: AppColors.primary, size: 20),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.navy,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '${item.type.label}  ·  ${item.price}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                AdminBadge(
-                  label: item.published ? 'Live' : 'Hidden',
-                  color: adminStatusColor(item.published ? 'Live' : 'Hidden'),
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-        ],
+          )
+        else
+          for (final item in items) ...[
+            AdminCard(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AdminCatalogueEditorScreen(item: item),
+                  ),
+                );
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child:
+                          AppIcon(item.icon, color: AppColors.primary, size: 22),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.navy,
+                                ),
+                              ),
+                            ),
+                            AdminBadge(
+                              label: item.published ? 'Live' : 'Hidden',
+                              color: adminStatusColor(
+                                  item.published ? 'Live' : 'Hidden'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Category: ${item.type.label}  ·  Sport: ${item.sport}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.fieldBorder.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Item ID: ${item.primaryUniqueId}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.navy,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${item.price}  ·  ${item.stockCount} in stock',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
       ],
     );
   }

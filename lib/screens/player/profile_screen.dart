@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../theme/app_theme.dart';
-import '../state/app_membership_state.dart';
-import '../widgets/app_icon.dart';
+import '../../state/app_membership_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
 import 'booking_history_screen.dart';
 import 'credits_screen.dart';
 import 'memberships_screen.dart';

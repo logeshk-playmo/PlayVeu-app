@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../state/app_booking_state.dart';
-import '../state/app_membership_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/primary_button.dart';
+import '../../state/app_booking_state.dart';
+import '../../state/app_membership_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/primary_button.dart';
 import 'credit_success_screen.dart';
 import 'memberships_screen.dart';
 

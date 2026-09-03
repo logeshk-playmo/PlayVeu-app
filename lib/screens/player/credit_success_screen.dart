@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:playveuw_app/screens/home_screen.dart';
 
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/primary_button.dart';
+import 'home_screen.dart';
+
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/primary_button.dart';
 
 class CreditSuccessScreen extends StatefulWidget {
   const CreditSuccessScreen({

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../state/app_booking_state.dart';
-import '../state/app_membership_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/primary_button.dart';
+import '../../state/app_booking_state.dart';
+import '../../state/app_membership_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/primary_button.dart';
 
 class MembershipsScreen extends StatefulWidget {
   const MembershipsScreen({super.key});

@@ -73,6 +73,7 @@ flutter:
     - assets/my_equpiment_logo.jpg
     - assets/my_venue_logo.jpg
     - assets/live_match_logo.jpg
+    - assets/add_plan_logo.png
     - assets/sports/
 
   # An image asset can refer to one or more resolution-specific "variants", see

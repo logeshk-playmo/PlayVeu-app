@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../state/app_rental_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
+import '../../state/app_rental_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import 'equipment_detail_screen.dart';
 
-export '../state/app_rental_state.dart' show EquipmentRentalRecord;
+export '../../state/app_rental_state.dart' show EquipmentRentalRecord;
 
 class EquipmentHistoryScreen extends StatefulWidget {
   const EquipmentHistoryScreen({super.key});
@@ -29,6 +30,14 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
 
   void _onChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _openDetails(EquipmentRentalRecord rental) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => EquipmentDetailScreen.fromRental(rental: rental),
+      ),
+    );
   }
 
   Future<void> _handleReturn(EquipmentRentalRecord rental) async {
@@ -146,6 +155,7 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
                 final rental = rentals[index];
                 return _RentalCard(
                   rental: rental,
+                  onTap: () => _openDetails(rental),
                   onReturn: () => _handleReturn(rental),
                 );
               },
@@ -157,120 +167,137 @@ class _EquipmentHistoryScreenState extends State<EquipmentHistoryScreen> {
 class _RentalCard extends StatelessWidget {
   const _RentalCard({
     required this.rental,
+    required this.onTap,
     required this.onReturn,
   });
 
   final EquipmentRentalRecord rental;
+  final VoidCallback onTap;
   final VoidCallback onReturn;
 
   @override
   Widget build(BuildContext context) {
     final canReturn = rental.status == 'Rented' || rental.status == 'Overdue';
 
-    return Container(
-      decoration: AppSurfaces.card(),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 68,
-                height: 68,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.backgroundBottom,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.fieldBorder),
-                ),
-                child: Image(
-                  image: rental.image.startsWith('http')
-                      ? NetworkImage(rental.image)
-                      : AssetImage(rental.image) as ImageProvider,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.sports_tennis_rounded,
-                    color: AppColors.primary,
-                    size: 32,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: AppSurfaces.card(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundBottom,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.fieldBorder),
+                  ),
+                  child: Image(
+                    image: rental.image.startsWith('http')
+                        ? NetworkImage(rental.image)
+                        : AssetImage(rental.image) as ImageProvider,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.sports_tennis_rounded,
+                      color: AppColors.primary,
+                      size: 32,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      rental.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navy,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        rental.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navy,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${rental.sport} • ${rental.category}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'ID: ${rental.uniqueItemId}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Rental Price: ${rental.price}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(height: 1, color: AppColors.fieldBorder),
+            ),
+            _DetailRow(label: 'Item ID', value: rental.uniqueItemId),
+            const SizedBox(height: 6),
+            _DetailRow(label: 'Rental Date', value: rental.rentedDate),
+            const SizedBox(height: 6),
+            _DetailRow(label: 'Duration', value: rental.duration),
+            const SizedBox(height: 6),
+            _DetailRow(label: 'Due Date', value: rental.returnDate),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _StatusBadge(status: rental.status),
+                if (canReturn)
+                  FilledButton(
+                    onPressed: onReturn,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 8,
+                      ),
+                      minimumSize: const Size(80, 36),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      rental.category,
-                      style: const TextStyle(
+                    child: const Text(
+                      'Return',
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Rental Price: ${rental.price}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, color: AppColors.fieldBorder),
-          ),
-          _DetailRow(label: 'Rented', value: rental.rentedDate),
-          const SizedBox(height: 6),
-          _DetailRow(label: 'Duration', value: rental.duration),
-          const SizedBox(height: 6),
-          _DetailRow(label: 'Return By', value: rental.returnDate),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _StatusBadge(status: rental.status),
-              if (canReturn)
-                FilledButton(
-                  onPressed: onReturn,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 8,
-                    ),
-                    minimumSize: const Size(80, 36),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
                   ),
-                  child: const Text(
-                    'Return',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -3,9 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../state/app_facility_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
+
+import '../../state/app_facility_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
 import 'venue_details_screen.dart';
 
 typedef VenueScreen = VenuesScreen;

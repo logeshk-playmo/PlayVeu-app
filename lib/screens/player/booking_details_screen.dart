@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../state/app_booking_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_icon.dart';
-import '../widgets/insufficient_credits_dialog.dart';
-import '../widgets/primary_button.dart';
+import '../../state/app_booking_state.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_icon.dart';
+import '../../widgets/insufficient_credits_dialog.dart';
+import '../../widgets/primary_button.dart';
 import 'booking_confirmation_screen.dart';
 import 'credits_screen.dart';
 

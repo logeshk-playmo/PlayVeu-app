@@ -5,7 +5,7 @@ import '../state/app_session.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primary_button.dart';
 import 'admin/admin_home_screen.dart';
-import 'home_screen.dart';
+import 'player/home_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   const OtpVerificationScreen({super.key, required this.phoneNumber});
